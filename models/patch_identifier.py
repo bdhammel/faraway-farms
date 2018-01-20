@@ -1,4 +1,6 @@
 import keras 
+from keras.preprocessing.image import ImageDataGenerator
+
 import numpy as np
 
 import sys, os
@@ -30,6 +32,8 @@ class PatchIdentifier:
         else:
             self._model = self._init_model()
 
+        self._augmentor = None
+
 
     def _init_model(self):
         """Initialize a new model 
@@ -39,13 +43,16 @@ class PatchIdentifier:
         # and speeding up the training process by leveraging pre-trained weights
         base_model = keras.applications.inception_v3.InceptionV3(
                 weights='imagenet', 
-                include_top=False
+                include_top=False,
+                input_shape=(200,200,3)
         )
 
         # Construct custom classifier on top of inception 
-        h = base_model.output
+        h = base_model.get_layer("mixed5").output
+        #h = keras.layers.MaxPooling2D(pool_size=(2,2))
         h = keras.layers.GlobalAveragePooling2D()(h)
-        h = keras.layers.Dense(1024, activation='relu')(h)
+        h = keras.layers.Dropout(0.5)(h)
+        h = keras.layers.Dense(424, activation='relu')(h)
         h = keras.layers.Dropout(0.5)(h)
         predictions = keras.layers.Dense(5, activation='softmax')(h)
 
@@ -84,7 +91,19 @@ class PatchIdentifier:
                 metrics=['accuracy']
         )
 
-        self._model.fit(Xtrain, Ytrain, epochs=epochs, batch_size=batch_size)
+        if not self._augmentor:
+            self._model.fit(Xtrain, Ytrain, epochs=epochs, batch_size=batch_size)
+        else:
+            self._model.fit_generator(
+                    self._augmentor.flow(Xtrain, Ytrain, batch_size=batch_size),
+                    epochs=epochs
+            )
+
+
+    def attach_augmentor(self, augmentor):
+        """Attached a Keras augmenter to
+        """
+        self._augmentor = augmentor
 
 
     def save(self, path="./saved_models/ucmerced.h5"):
@@ -95,6 +114,7 @@ class PatchIdentifier:
         """
         """
         return self._model.predict(X)
+
 
     def predict(self, X):
         """
@@ -114,6 +134,7 @@ class PatchIdentifier:
             raise Exception
 
         return self._model.evaluate(X, Y)
+
 
     def _images_are_ok(self, images):
         """
@@ -143,17 +164,28 @@ def _train_on_uc_merced():
     one_hot_ytrain = keras.utils.to_categorical(Ytrain-1, 5)
     one_hot_ytest = keras.utils.to_categorical(Ytest-1, 5)
 
-    ## Augment data
-
     model = PatchIdentifier()
 
-    # Only train the top of the model, used the features from Resnet
-    model.train(Xtrain, one_hot_ytrain, epochs=5, fix_layers=(0,311))
+    auger = ImageDataGenerator(
+                rotation_range=90,
+                shear_range=0.2,
+                zoom_range=0.2,
+                horizontal_flip=True,
+                vertical_flip=True,
+                channel_shift_range=0.2
+    )
 
-    print(model.evaluate(Xtest, one_hot_ytest))
+    model.attach_augmentor(auger)
+
+    # Only train the top of the model, used the features from Resnet
+    model.train(Xtrain, one_hot_ytrain, epochs=20, fix_layers=(0, 196))
+
+    print("Finished Training")
+
+    print("Accuracy: {:.2f}%".format(100*model.evaluate(Xtest, one_hot_ytest)[1]))
 
     # Save all of your hard work 
-    model.save("saves_models/merced.h5")
+    model.save("./saved_models/patch_identifier.h5")
 
 
 if __name__ == "__main__":
