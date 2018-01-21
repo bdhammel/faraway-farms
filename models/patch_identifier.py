@@ -1,12 +1,8 @@
 import keras 
 from keras.preprocessing.image import ImageDataGenerator
-
 import numpy as np
 
 import sys, os
-
-# This should be removed and put into utils or something
-from skimage import transform 
 
 PROJ_DIR = "/Users/bdhammel/Documents/insight/harvesting/"
 
@@ -54,7 +50,7 @@ class PatchIdentifier:
         h = keras.layers.Dropout(0.5)(h)
         h = keras.layers.Dense(424, activation='relu')(h)
         h = keras.layers.Dropout(0.5)(h)
-        predictions = keras.layers.Dense(5, activation='softmax')(h)
+        predictions = keras.layers.Dense(6, activation='softmax')(h)
 
         return keras.models.Model(inputs=base_model.input, outputs=predictions)
 
@@ -161,8 +157,8 @@ def _train_on_uc_merced():
     Xtrain, Ytrain = dataset.get_train_data()
     Xtest, Ytest = dataset.get_test_data()
 
-    one_hot_ytrain = keras.utils.to_categorical(Ytrain-1, 5)
-    one_hot_ytest = keras.utils.to_categorical(Ytest-1, 5)
+    one_hot_ytrain = keras.utils.to_categorical(Ytrain, 5)
+    one_hot_ytest = keras.utils.to_categorical(Ytest, 5)
 
     model = PatchIdentifier()
 

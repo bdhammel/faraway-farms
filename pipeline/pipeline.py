@@ -1,10 +1,14 @@
 import numpy as np
-
-from skimage.io import imread
-from skimage.external import tifffile
 from skimage.util import view_as_blocks
 
-import os
+import os, sys
+
+PROJ_DIR = "/Users/bdhammel/Documents/insight/harvesting/"
+
+if PROJ_DIR not in sys.path:
+    sys.path.append(PROJ_DIR)
+
+from pipeline import utils
 
 
 class SatelliteImage:
@@ -83,17 +87,7 @@ def load_from_file(path):
     """
     """
 
-    ext = os.path.splitext(path)[1]
-
-    if ext in [".jpg", ".png"]:
-        _img = imread(path)
-    elif ext == ".tif":
-        _img = tifffile.imread(path)
-    else:
-        raise Exception("Not a supported extension")
-
-    img = SatelliteImage(_img)
-    del _img
+    img = SatelliteImage(utils.read_image(path))
 
     return img
 
