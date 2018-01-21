@@ -143,14 +143,17 @@ def generarate_train_and_test(data, path=None, save=False):
         X += _x
         del _x
 
+
     Xtrain, Xtest, Ytrain, Ytest = train_test_split(
         np.array(X), np.array(Y), test_size=0.33, random_state=42)
+
 
     if save and path is not None:
         dump_as_pickle(Xtrain, os.path.join(path, "xtrain.p"))
         dump_as_pickle(Xtest, os.path.join(path, "xtest.p"))
         dump_as_pickle(Ytrain, os.path.join(path, "ytrain.p"))
         dump_as_pickle(Ytest, os.path.join(path, "ytest.p"))
+
 
     return Xtrain, Xtest, Ytrain, Ytest
 
