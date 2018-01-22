@@ -1,0 +1,3 @@
+file                    Train Description                                                       Notes
+patch_identifier_v5     Trained patch_identifier_v4 on uc_merced and whu, full network          89% accuracy, passes test satellite image in example
+

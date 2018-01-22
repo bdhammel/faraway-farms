@@ -162,7 +162,7 @@ def train_on_uc_merced(save_weights=False):
     """
 
     # Load in data
-    data_path = "/Users/bdhammel/Documents/insight/data/UCMerced_LandUse/"
+    data_path = "../datasets/whu_rs19/"
 
     dataset = import_uc_merced.DataSet(data_path)
     Xtrain, Ytrain = dataset.get_train_data()
