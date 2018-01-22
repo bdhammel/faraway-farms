@@ -71,14 +71,20 @@ class PatchIdentifier:
 
         # Turn off training of weights, used during transfer learning
         if fix_layers:
-            start_layer, end_layer = fix_layers
+            fixed_layers = list(range(*fix_layers))
             print("Model has {} layers, freezing layers {}-{}".format(
                 len(self._model.layers),
-                start_layer,
-                end_layer)
+                fix_layers[0],
+                fix_layers[1])
                 )
-            for layer in np.asarray(self._model.layers)[start_layer:end_layer]:
+        else:
+            fixed_layers = []
+
+        for l, layer in enumerate(self._model.layers):
+            if fix_layers and l in fixed_layers:
                 layer.trainable = False
+            else:
+                layer.trainable = True
 
         self._model.compile(
                 optimizer='adam', 
