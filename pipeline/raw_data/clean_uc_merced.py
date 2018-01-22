@@ -29,18 +29,10 @@ UC merced images seem to have already been normalized to [0,1)
 """
 
 import numpy as np
-
-import os, sys
-
-PROJ_DIR = "/Users/bdhammel/Documents/insight/harvesting/"
-
-if PROJ_DIR not in sys.path:
-    sys.path.append(PROJ_DIR)
-
 from pipeline import utils
 
 
-MAP_MERCED_LABELS = {
+MAP_TO_LOCAL_LABELS = {
         'agricultural':'crops',
         'airplane':None,
         'baseballdiamond':None,
@@ -80,7 +72,7 @@ def convert_classes(raw_data):
     data = {}
 
     for merced_label, images in raw_data.items():
-        label = MAP_MERCED_LABELS[merced_label]
+        label = MAP_TO_LOCAL_LABELS[merced_label]
         if label:
             data[label] = images
 

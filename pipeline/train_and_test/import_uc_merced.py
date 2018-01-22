@@ -1,12 +1,4 @@
 import numpy as np
-
-import os, sys
-
-PROJ_DIR = "/Users/bdhammel/Documents/insight/harvesting/"
-
-if PROJ_DIR not in sys.path:
-    sys.path.append(PROJ_DIR)
-
 from pipeline import utils
 
 

@@ -1,14 +1,6 @@
-import keras 
+import keras
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
-
-import sys, os
-
-PROJ_DIR = "/Users/bdhammel/Documents/insight/harvesting/"
-
-if PROJ_DIR not in sys.path:
-    sys.path.append(PROJ_DIR)
-
 from pipeline.train_and_test import import_uc_merced
 
 
@@ -44,7 +36,7 @@ class PatchIdentifier:
         )
 
         # Construct custom classifier on top of inception 
-        h = base_model.get_layer("mixed5").output
+        h = base_model.get_layer("mixed6").output
         #h = keras.layers.MaxPooling2D(pool_size=(2,2))
         h = keras.layers.GlobalAveragePooling2D()(h)
         h = keras.layers.Dropout(0.5)(h)
@@ -55,7 +47,9 @@ class PatchIdentifier:
         return keras.models.Model(inputs=base_model.input, outputs=predictions)
 
     
-    def train(self, Xtrain, Ytrain, epochs=5, batch_size=32, fix_layers=None):
+    def train(self, Xtrain, Ytrain, epochs=5, batch_size=32, fix_layers=None,
+            validation_data=None
+            ):
         """Train the model
 
         Args
@@ -78,6 +72,11 @@ class PatchIdentifier:
         # Turn off training of weights, used during transfer learning
         if fix_layers:
             start_layer, end_layer = fix_layers
+            print("Model has {} layers, freezing layers {}-{}".format(
+                len(self._model.layers),
+                start_layer,
+                end_layer)
+                )
             for layer in np.asarray(self._model.layers)[start_layer:end_layer]:
                 layer.trainable = False
 
@@ -88,10 +87,17 @@ class PatchIdentifier:
         )
 
         if not self._augmentor:
-            self._model.fit(Xtrain, Ytrain, epochs=epochs, batch_size=batch_size)
+            self._model.fit(
+                    Xtrain, 
+                    Ytrain, 
+                    epochs=epochs, 
+                    validation_data=validation_data,
+                    batch_size=batch_size
+            )
         else:
             self._model.fit_generator(
                     self._augmentor.flow(Xtrain, Ytrain, batch_size=batch_size),
+                    validation_data=validation_data,
                     epochs=epochs
             )
 
@@ -102,15 +108,14 @@ class PatchIdentifier:
         self._augmentor = augmentor
 
 
-    def save(self, path="./saved_models/ucmerced.h5"):
+    def save(self, path=".models/saved_models/ucmerced.h5"):
         self._model.save(path)
 
 
     def probabilities(self, X):
         """
         """
-        return self._model.predict(X)
-
+        return self._model.predict(X) 
 
     def predict(self, X):
         """
@@ -146,7 +151,7 @@ class PatchIdentifier:
         return True
 
 
-def _train_on_uc_merced():
+def train_on_uc_merced(save_weights=False):
     """
     """
 
@@ -157,8 +162,8 @@ def _train_on_uc_merced():
     Xtrain, Ytrain = dataset.get_train_data()
     Xtest, Ytest = dataset.get_test_data()
 
-    one_hot_ytrain = keras.utils.to_categorical(Ytrain, 5)
-    one_hot_ytest = keras.utils.to_categorical(Ytest, 5)
+    one_hot_ytrain = keras.utils.to_categorical(Ytrain, 6)
+    one_hot_ytest = keras.utils.to_categorical(Ytest, 6)
 
     model = PatchIdentifier()
 
@@ -167,24 +172,31 @@ def _train_on_uc_merced():
                 shear_range=0.2,
                 zoom_range=0.2,
                 horizontal_flip=True,
-                vertical_flip=True,
-                channel_shift_range=0.2
+                vertical_flip=True
     )
 
     model.attach_augmentor(auger)
 
     # Only train the top of the model, used the features from Resnet
-    model.train(Xtrain, one_hot_ytrain, epochs=20, fix_layers=(0, 196))
+    # mixed5 at index 164
+    # mixed6 at index 196
+    model.train(
+            Xtrain, 
+            one_hot_ytrain, 
+            epochs=20, 
+            fix_layers=(0, 195), 
+            validation_data=(Xtest[:64], one_hot_ytest[:64]))
 
     print("Finished Training")
 
     print("Accuracy: {:.2f}%".format(100*model.evaluate(Xtest, one_hot_ytest)[1]))
 
     # Save all of your hard work 
-    model.save("./saved_models/patch_identifier.h5")
+    if save_weights:
+        model.save("./models/saved_models/patch_identifier.h5")
 
 
 if __name__ == "__main__":
-    #_train_on_uc_merced()
+    _train_on_uc_merced()
     pass
 

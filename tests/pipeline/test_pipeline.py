@@ -2,16 +2,8 @@ import numpy as np
 from numpy import testing as nptest
 import unittest
 
-
-import os, sys
-
-PROJ_DIR = "/Users/bdhammel/Documents/insight/harvesting/"
-
-if PROJ_DIR not in sys.path:
-    sys.path.append(PROJ_DIR)
-
 from pipeline import utils
-from pipeline. raw_data import clean_uc_merced
+from pipeline.raw_data import clean_uc_merced
 
 
 class UtilsTestCase(unittest.TestCase):
@@ -40,6 +32,9 @@ class UtilsTestCase(unittest.TestCase):
         labels = list(set(utils.CLASS_TO_ID.values()))
         assert len(labels) == max(labels)+1
 
+    def test_undesired_labels_arnt_loaded(self):
+        assert False
+
 
 class UCMercedTestCase(unittest.TestCase):
 
@@ -50,7 +45,7 @@ class UCMercedTestCase(unittest.TestCase):
 
         # Don't brink in the None values, check that these aren't imported in 
         # a separate test
-        export_classes = [value for value in clean_uc_merced.MAP_MERCED_LABELS.values() if value]
+        export_classes = [value for value in clean_uc_merced.MAP_TO_LOCAL_LABELS.values() if value]
         pipeline_classes = utils.CLASS_TO_ID.keys()
         self.assertCountEqual(pipeline_classes, export_classes)
 
