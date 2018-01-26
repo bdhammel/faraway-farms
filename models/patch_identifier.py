@@ -6,7 +6,7 @@ from pipeline.train_and_test import import_uc_merced
 
 class PatchIdentifier:
 
-    def __init__(self, path=None):
+    def __init__(self, path=None, model_fn=None):
         """load the model by importing a pre-existing model or initializing a 
         new one
 
@@ -17,34 +17,12 @@ class PatchIdentifier:
 
         if path:
             self._model = keras.models.load_model(path)
-        else:
-            self._model = self._init_model()
+        elif model_fn:
+            self._model = model_fn()
 
         self._augmentor = None
 
 
-    def _init_model(self):
-        """Initialize a new model 
-        """
-
-        # Used the convolutional layers from inception for feature extraction 
-        # and speeding up the training process by leveraging pre-trained weights
-        base_model = keras.applications.inception_v3.InceptionV3(
-                weights='imagenet', 
-                include_top=False,
-                input_shape=(200,200,3)
-        )
-
-        # Construct custom classifier on top of inception 
-        h = base_model.get_layer("mixed6").output
-        #h = keras.layers.MaxPooling2D(pool_size=(2,2))
-        h = keras.layers.GlobalAveragePooling2D()(h)
-        h = keras.layers.Dropout(0.5)(h)
-        h = keras.layers.Dense(424, activation='relu')(h)
-        h = keras.layers.Dropout(0.5)(h)
-        predictions = keras.layers.Dense(6, activation='softmax')(h)
-
-        return keras.models.Model(inputs=base_model.input, outputs=predictions)
 
     
     def train(self, Xtrain, Ytrain, epochs=5, batch_size=32, fix_layers=None,
@@ -155,6 +133,31 @@ class PatchIdentifier:
         TODO: actually do this function 
         """
         return True
+
+
+def model_fn():
+    """Initialize a new model 
+    """
+
+    # Used the convolutional layers from inception for feature extraction 
+    # and speeding up the training process by leveraging pre-trained weights
+    base_model = keras.applications.inception_v3.InceptionV3(
+            weights='imagenet', 
+            include_top=False,
+            input_shape=(200,200,3)
+    )
+
+    # Construct custom classifier on top of inception 
+    h = base_model.get_layer("mixed6").output
+    #h = keras.layers.MaxPooling2D(pool_size=(2,2))
+    h = keras.layers.GlobalAveragePooling2D()(h)
+    h = keras.layers.Dropout(0.5)(h)
+    h = keras.layers.Dense(424, activation='relu')(h)
+    h = keras.layers.Dropout(0.5)(h)
+    predictions = keras.layers.Dense(6, activation='softmax')(h)
+
+    return keras.models.Model(inputs=base_model.input, outputs=predictions)
+
 
 
 def train_on_uc_merced(save_weights=False):
