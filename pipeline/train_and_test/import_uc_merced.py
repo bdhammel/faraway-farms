@@ -4,7 +4,7 @@ from pipeline import utils
 
 class DataSet:
 
-    class_to_id = utils.CLASS_TO_ID
+    class_to_id = utils.PATCH_CLASS_TO_ID
 
     def __init__(self, path="./"):
         self.path = path
@@ -48,5 +48,3 @@ class DataSet:
 if __name__ == "__main__":
 
     ds = DataSet(path="../../datasets/uc_merced/")
-
-

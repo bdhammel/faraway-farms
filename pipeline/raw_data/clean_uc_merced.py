@@ -25,7 +25,6 @@ UC Merced Classes:
 
 UC merced images seem to have already been normalized to [0,1)
 
-
 """
 
 import numpy as np

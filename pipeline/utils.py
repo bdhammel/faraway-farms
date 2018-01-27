@@ -8,14 +8,25 @@ from sklearn.model_selection import train_test_split
 import glob
 import os
 import unittest
+import math
 
-CLASS_TO_ID = {
+
+# Conversion of labels to id for path classification
+PATCH_CLASS_TO_ID = {
     'trees':0,
     'water':1,
     'crops':2,
     'vehicles':3,
     'buildings':4,
     'field':5
+}
+
+# Conversion of labels to id for object detection 
+OBJ_CLASS_TO_ID = {
+    'vehicles':0,
+    'buildings':1,
+    'animals':2,
+    'trees':3
 }
 
 
@@ -69,7 +80,15 @@ def load_pickled_data(path):
     return data
 
 
-def read_image(path):
+def read_raw_image(path, report=True):
+    """Import a raw image 
+
+    This could be as 8 bit or 16 bit... or 10 bit like some of the files...
+
+    Args
+    ----
+    path (str) : path to the image file
+    """
     ext = os.path.splitext(path)[1]
 
     if ext in [".jpg", ".png"]:
@@ -79,17 +98,48 @@ def read_image(path):
     else:
         raise Exception("{} Not a supported extension".format(ext))
 
-    return img
-
-
-def clean_image(img, size=(200,200,3)):
-
-    img = transform.resize(img, size, mode='reflect')
-
-    if img.max() > 1 or img.min() < 0:
-        raise Exception("image needs to be cleaned")
+    if report:
+        print("Image {} loaded".format(os.path.basename(path)))
+        print("\tShape: ", img.shape)
+        print("\tdtype: ", img.dtype)
 
     return img
+
+
+def image_preprocessor(img):
+    """Normalize the image
+
+     - Convert 16 bit to 8 bit
+     - Set color channel to the last channel
+     - Normalize the data to [0, 1)
+
+
+    Args
+    ----
+    img (np array) : raw image data
+    channel_last (bool) : 
+
+    Returns 
+    -------
+    numpy array of cleaned image data
+    """
+
+    data = np.asarray(img)
+
+    # set the color channel to last if in channel_first format
+    if len(data.shape) == 3 and data.shape[-1] != 3:
+        data = np.rollaxis(data, 0, 3) 
+
+    # if > 8 bit, shift to a 255 pixel max
+    bitspersample = int(math.ceil(math.log(data.max(), 2)))
+    if bitspersample > 8:
+        data >>= bitspersample - 8
+        data.astype('B')
+
+    # normalize to [0, 1)
+    data = data/255
+
+    return data
 
 
 def load_from_categorized_directory(path, load_labels):
@@ -208,4 +258,18 @@ def as_batch(img, as_list=False):
         return flat_blocks
 
 
+def get_file_name_from_path(path):
+    """Extract the file name from a given path
+
+    if path is `/path/to/file/name.ext` then this functions returns `name`
+
+    Args
+    ----
+    path (str) : path to a file of interest 
+
+    Returns
+    -------
+    (str) The file name 
+    """
+    return os.path.splitext(os.path.basename(path))[0]
 
