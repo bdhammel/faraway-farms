@@ -113,5 +113,9 @@ class DSTLTestCase(unittest.TestCase):
             pass
 
 
+    def test_dstl_labels_maped_to_local_labels(self):
+        assert False
+
+
 if __name__ == '__main__':
     unittest.main()

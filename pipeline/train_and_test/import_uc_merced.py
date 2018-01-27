@@ -1,10 +1,10 @@
 import numpy as np
-from pipeline import utils
+from pipeline import utils as pipe_utils
 
 
 class DataSet:
 
-    class_to_id = utils.PATCH_CLASS_TO_ID
+    class_to_id = pipe_utils.PATCH_CLASS_TO_ID
 
     def __init__(self, path="./"):
         self.path = path
@@ -14,10 +14,10 @@ class DataSet:
         """
         INCOMPLETE
         """
-        self.Xtrain = utils.load_pickled_data(path + "xtrain.p")
-        self.Xtest = utils.load_pickled_data(path + "xtest.p")
-        self.Ytrain = utils.load_pickled_data(path + "ytrain.p")
-        self.Ytest = utils.load_pickled_data(path + "ytest.p")
+        self.Xtrain = pipe_utils.load_pickled_data(path + "xtrain.p")
+        self.Xtest = pipe_utils.load_pickled_data(path + "xtest.p")
+        self.Ytrain = pipe_utils.load_pickled_data(path + "ytrain.p")
+        self.Ytest = pipe_utils.load_pickled_data(path + "ytest.p")
 
 
     def get_train_data(self):
@@ -48,3 +48,5 @@ class DataSet:
 if __name__ == "__main__":
 
     ds = DataSet(path="../../datasets/uc_merced/")
+
+
