@@ -106,7 +106,7 @@ def read_raw_image(path, report=True):
     return img
 
 
-def image_preprocessor(img):
+def image_preprocessor(img, report=True):
     """Normalize the image
 
      - Convert 16 bit to 8 bit
@@ -134,6 +134,11 @@ def image_preprocessor(img):
     if bitspersample > 8:
         data >>= bitspersample - 8
         data.astype('B')
+
+    if report:
+        print("Cleaned To:")
+        print("\tShape: ", data.shape)
+        print("\tdtype: ", data.dtype)
 
     return data
 
@@ -211,7 +216,7 @@ def generarate_train_and_test(data, path=None, save=False):
     return Xtrain, Xtest, Ytrain, Ytest
 
 
-def chop_to_blocks(data, shape=()):
+def chop_to_blocks(data, shape):
     """Subdivides the current image and returns an array of DataFrame images 
     with the dims `shape`
 

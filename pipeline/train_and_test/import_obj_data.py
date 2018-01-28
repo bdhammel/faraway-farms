@@ -4,10 +4,12 @@ import matplotlib.pyplot as plt
 from matplotlib import patches
 import numpy as np
 
+from pipeline import utils as pipe_utils
+
 
 class ObjImage:
 
-    def __init__(self, image_path):
+    def __init__(self, image_path=None, data=None):
         """
 
         Loads an image from a processed directory 
@@ -16,9 +18,45 @@ class ObjImage:
         ----
         image_path (str) : location of the image to upload
         """
-        self._data = skio.imread(image_path)
+
+        if image_path is not None:
+            self._data = skio.imread(image_path)
+            self._image_id = pipe_utils.get_file_name_from_path(image_path)
+        elif data is not None:
+            self._data = data
+            self._image_id = None
+
         self._check_data(self._data)
         self._features = {}
+
+
+    def set_image_id(self, image_id):
+        """Give this data an id
+
+        Typically this is just the file name
+
+        Args
+        ----
+        image_id (str) : the id to assign the image
+        """
+        self._image_id = image_id
+
+
+    @property
+    def data(self):
+        return self._data
+
+
+    @property
+    def image_id(self):
+        if self._image_id is None:
+            raise Exception("No id for this image")
+
+        return self._image_id
+
+    
+    def get_features(self):
+        return self._features
 
 
     def _check_data(self, data):
