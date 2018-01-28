@@ -8,7 +8,7 @@ import os
 from pipeline import utils as pipe_utils
 
 
-class ObjImage:
+class ObjImage(pipe_utils.SatelliteImage):
 
     def __init__(self, image_path=None, data=None):
         """
@@ -42,19 +42,6 @@ class ObjImage:
         self._image_id = image_id
 
 
-    @property
-    def data(self):
-        return self._data
-
-
-    @property
-    def image_id(self):
-        if self._image_id is None:
-            raise Exception("No id for this image")
-
-        return self._image_id
-
-    
     def get_features(self):
         return self._features
 
@@ -82,7 +69,7 @@ class ObjImage:
         return list(self._features.keys())
 
 
-    def show(self, label):
+    def show(self, label = None):
         """Display the image
 
         Args
@@ -93,7 +80,12 @@ class ObjImage:
         plt.imshow(self._data)
         ax = plt.gca()
 
-        for loc in self._features.get(label, []):
+        if label is not None:
+            features = self._features.get(label, [])
+        else:
+            features = self.get_features()
+
+        for loc in features:
             x1, y1, x2, y2 = loc
             xy = (x1, y1)
             width = x2-x1
@@ -106,10 +98,9 @@ class ObjImage:
                     )
 
             ax.add_patch(patch)
-        plt.legend()
 
 
-def load_data(annotations_file):
+def load_data(annotations_file, max_images=100):
     """Load data in from a CSV annotations file
 
     Args
@@ -123,16 +114,19 @@ def load_data(annotations_file):
         csv_reader = csv.reader(f)
 
         for img_path, *coor, label in csv_reader:
+
             # Convert coor to ints (pixels), if no coor, then just pass
             try:
-                coor = tuple(map(int, coor))
-            except ValueError:
+                coor = tuple(map(float, coor))
+            except ValueError as e:
                 pass
             else:
                 img = dataset.get(img_path, ObjImage(img_path))
                 img.append_feature(label, coor)
+                dataset[img_path] = img
 
-            dataset[img_path] = img
+            if len(dataset.keys()) >= max_images: 
+                break
 
     return list(dataset.values())
 

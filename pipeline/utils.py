@@ -29,6 +29,36 @@ OBJ_CLASS_TO_ID = {
     'trees':3
 }
 
+class SatelliteImage:
+
+    @property
+    def data(self):
+        """Return the satellite image data 
+        """
+        return self._data
+
+
+    @property
+    def image_id(self):
+        if self._image_id is None:
+            raise Exception("No id for this image")
+
+        return self._image_id
+
+
+    def check_self(self):
+        datamax = self.data.max()
+        if datamax < 1 and self.data.min() > 0:
+            print("[0,1)")
+        elif datamax < 255:
+            print("[0,255]")
+
+
+    def show(self):
+
+        im = Image.fromarray(self.data)
+        draw = ImageDraw.Draw(im)       
+
 
 def ids_to_classes(ids):
     """Convert id integers back to a verbose label

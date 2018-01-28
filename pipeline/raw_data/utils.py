@@ -5,36 +5,10 @@ from pipeline import utils as pipe_utils
 from PIL import Image, ImageDraw
 
 
-class SatelliteImage:
-
-    @property
-    def data(self):
-        """Return the satellite image data 
-        """
-        return self._data
-
-
-    @property
-    def image_id(self):
-        return self._image_id
-
-
-    def check_self(self):
-        datamax = self.data.max()
-        if datamax < 1 and self.data.min() > 0:
-            print("[0,1)")
-        elif datamax < 255:
-            print("[0,255]")
-
-
-    def show(self):
-
-        im = Image.fromarray(self.data)
-        draw = ImageDraw.Draw(im)       
 
 
 
-class RawPatchImage(SatelliteImage):
+class RawPatchImage(pipe_utils.SatelliteImage):
     pass
 
 

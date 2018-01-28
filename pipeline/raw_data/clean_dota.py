@@ -24,6 +24,7 @@ from pipeline import utils as pipe_utils
 import pipeline.raw_data.utils as clean_utils
 from pipeline import obj_pipeline
 
+
 MAP_TO_LOCAL_LABELS = {
     'plane', 
     'ship', 
@@ -40,7 +41,6 @@ MAP_TO_LOCAL_LABELS = {
     'soccer ball field',
     'basketball court'
 }
-
 
 class DOTAImage(clean_utils.RawObjImage):
 
@@ -161,8 +161,12 @@ def dota_processor(block_shape):
     return _processor
 
 
-def save_as_retinanet_data(ds, image_save_dir, annotations_save_dir, 
-        percent_test_set=.2):
+def save_as_retinanet_data(
+        ds, 
+        image_save_dir, 
+        annotations_save_dir, 
+        percent_test_set=.2
+):
     """
 
     Args
