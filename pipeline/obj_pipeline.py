@@ -3,6 +3,7 @@ import skimage.io as skio
 import matplotlib.pyplot as plt
 from matplotlib import patches
 import numpy as np
+import os
 
 from pipeline import utils as pipe_utils
 
@@ -13,7 +14,6 @@ class ObjImage:
         """
 
         Loads an image from a processed directory 
-
         Args
         ----
         image_path (str) : location of the image to upload
@@ -135,6 +135,35 @@ def load_data(annotations_file):
             dataset[img_path] = img
 
     return list(dataset.values())
+
+
+def update_annotation_file_img_paths(annotation_file_path, new_img_dir):
+    """Automated updating of the image paths in an annotation file
+    If the dataset directory gets moved. e.g. to a server
+    the image paths in the annotation files will need to be updated
+
+    Args
+    ----
+    annotation_file_path (str) : path to the current annotation file
+    new_img_dir (str) : the new directory where the images are stored
+    """
+    
+    annotation_dir = os.path.dirname(annotation_file_path)
+    annotation_file = os.path.basename(annotation_file_path)
+    old_annotation_file_path = os.path.join(annotation_dir, "old_"+annotation_file)
+    os.rename(annotation_file_path, old_annotation_file_path)
+
+    with open(old_annotation_file_path, 'r') as old_file, open(annotation_file_path, 'w') as new_file:
+        old_reader = csv.reader(old_file)
+        new_writer = csv.writer(new_file)
+
+        # update each image location in the annotations file
+        for row in old_reader:
+            old_img_path = row[0]
+            image_file_name = os.path.basename(old_img_path)
+            new_img_path = os.path.join(new_img_dir, image_file_name)
+            new_writer.writerow([new_img_path, *row[1:]])
+
 
 
 if __name__ == '__main__':

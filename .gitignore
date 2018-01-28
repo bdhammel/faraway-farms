@@ -3,3 +3,4 @@
 datasets/**/*.png
 datasets/**/*.tif
 datasets/**/*.jpg
+datasets/**/*.csv

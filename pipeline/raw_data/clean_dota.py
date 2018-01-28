@@ -22,7 +22,7 @@ import csv
 
 from pipeline import utils as pipe_utils
 import pipeline.raw_data.utils as clean_utils
-from pipeline.train_and_test import import_obj_data as cleaned_obj
+from pipeline import obj_pipeline
 
 MAP_TO_LOCAL_LABELS = {
     'plane', 
@@ -145,7 +145,7 @@ def dota_processor(block_shape):
         # new coordinate ref frame
         for j in range(jmx):
             for i in range(imx):
-                img_patch = cleaned_obj.ObjImage(data=blocks[j, i, 0, ...])
+                img_patch = obj_pipeline.ObjImage(data=blocks[j, i, 0, ...])
                 new_id = raw_img.image_id + "__{}_{}".format(i, j)
                 img_patch.set_image_id(new_id)
                 for label, locs in features.items():
