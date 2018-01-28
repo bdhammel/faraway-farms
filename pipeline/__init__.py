@@ -1,4 +1,4 @@
-from . import train_and_test
 from . import raw_data
-from . import pipeline
+from . import obj_pipeline
+from . import path_pipeline
 from . import utils
