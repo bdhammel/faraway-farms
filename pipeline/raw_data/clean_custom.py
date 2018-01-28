@@ -18,6 +18,12 @@ import numpy as np
 from pipeline import utils as pipe_utils
 
 
+MAP_TO_LOCAL_LABELS = {
+    'building':'buildings',
+    'vehicle':'vehicle'
+    'waterbody':None
+}
+
 class HarvestingImage:
 
     def __init__(self, img_file):
@@ -26,9 +32,11 @@ class HarvestingImage:
         self._data = pipe_utils.image_preprocessor(_data)
         self._features = {}
 
+
     @property
     def path(self):
         return self._path
+
 
     @property
     def image_name(self):
@@ -127,7 +135,9 @@ def process_directory(dir_path, image_save_dir, annotations_save_dir):
                     img_path,
                     img.data
             )
+
             for label, features in img.features.items():
+                label = MAP_TO_LOCAL_LABEL[label]
                 for coor in features:
                     row = [img_path, *coor, label]
 

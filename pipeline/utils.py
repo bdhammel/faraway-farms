@@ -111,7 +111,6 @@ def image_preprocessor(img):
 
      - Convert 16 bit to 8 bit
      - Set color channel to the last channel
-     - Normalize the data to [0, 1)
 
 
     Args
@@ -135,9 +134,6 @@ def image_preprocessor(img):
     if bitspersample > 8:
         data >>= bitspersample - 8
         data.astype('B')
-
-    # normalize to [0, 1)
-    data = data/255
 
     return data
 
@@ -246,6 +242,11 @@ def chop_to_blocks(data, shape=()):
 
 
 def as_batch(img, as_list=False):
+    """
+
+    Args
+    ----
+    """
     
     blocks = chop_to_blocks(img, shape=(200,200,3))
     og_shape = blocks.shape
