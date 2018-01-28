@@ -1,2 +1,5 @@
 *.p
 *.h5
+datasets/**/*.png
+datasets/**/*.tif
+datasets/**/*.jpg
