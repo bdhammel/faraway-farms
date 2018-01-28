@@ -10,7 +10,6 @@ References
 """
 import matplotlib.pyplot as plt
 from matplotlib import patches
-import skimage.external.tifffile as tif
 import skimage.io as skio
 from skimage.util import view_as_blocks
 import numpy as np 

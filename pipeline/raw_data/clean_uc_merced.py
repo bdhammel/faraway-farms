@@ -25,6 +25,10 @@ UC Merced Classes:
 
 UC merced images seem to have already been normalized to [0,1)
 
+References
+----------
+ (*) http://weegee.vision.ucmerced.edu/datasets/landuse.html
+
 """
 
 import numpy as np
