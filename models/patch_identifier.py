@@ -13,6 +13,7 @@ class PatchIdentifier:
         Args
         ----
         path (str) : path to a saved model with .h5 extension 
+        model_fn (function returning a keras.model instance) 
         """
 
         if path:
@@ -115,7 +116,12 @@ class PatchIdentifier:
 
 
     def evaluate(self, X, Y):
-        """
+        """Evaluate the accuracy of the model
+
+        Args
+        ----
+        X (np array) : the image data set to evaluate of shape (-1, xpx, ypx, 3)
+        Y (np array) : one_hot_encoded labels of the image
         """
 
         # Sanity check
@@ -128,23 +134,10 @@ class PatchIdentifier:
         return self._model.evaluate(X, Y)
 
 
-    def _images_are_ok(self, images):
-        """
-
-        TODO: actually do this function 
-        """
-        return True
-
-
-    def _labels_are_ok(self, labels):
-        """
-        TODO: actually do this function 
-        """
-        return True
-
-
 def model_fn():
     """Initialize a new model 
+    
+    Define the model architecture here
     """
 
     # Used the convolutional layers from inception for feature extraction 
@@ -168,8 +161,12 @@ def model_fn():
 
 
 
-def train_on_uc_merced(save_weights=False):
-    """
+def train(save_weights=False):
+    """Train the patch identification model
+
+    Args
+    ----
+    save_weights (bool) : save the model once the epochs are finished
     """
 
     # Load in data
@@ -194,7 +191,7 @@ def train_on_uc_merced(save_weights=False):
 
     model.attach_augmentor(auger)
 
-    # Only train the top of the model, used the features from Resnet
+    # Only train the top of the model, use the features from Resnet
     # mixed5 at index 164
     # mixed6 at index 196
     model.train(
@@ -214,6 +211,6 @@ def train_on_uc_merced(save_weights=False):
 
 
 if __name__ == "__main__":
-    _train_on_uc_merced()
+    # train()
     pass
 
