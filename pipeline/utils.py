@@ -29,6 +29,7 @@ OBJ_CLASS_TO_ID = {
     'trees':3
 }
 
+
 class SatelliteImage:
 
     @property
@@ -40,13 +41,37 @@ class SatelliteImage:
 
     @property
     def image_id(self):
+        """Return the id of the image, this is usually the file name
+
+        Raises
+        ------
+        Exception : if no id has been assigned
+        """
         if self._image_id is None:
             raise Exception("No id for this image")
 
         return self._image_id
 
 
+    def set_image_id(self, image_id):
+        """Give this data an id
+
+        Typically this is just the file name
+
+        Args
+        ----
+        image_id (str) : the id to assign the image
+        """
+        self._image_id = image_id
+
+
     def check_self(self):
+        """Perform a check to ensure the image data is in the correct range
+
+        TODO
+        ----
+        Actually do a rigorous check 
+        """
         datamax = self.data.max()
         if datamax < 1 and self.data.min() > 0:
             print("[0,1)")
@@ -55,18 +80,20 @@ class SatelliteImage:
 
 
     def show(self):
-
+        """Display the image
+        Typically this function if overloaded
+        """
         im = Image.fromarray(self.data)
-        draw = ImageDraw.Draw(im)       
-
-
+        im.show()
+        return im
 
 
 def ids_to_classes(ids):
     """Convert id integers back to a verbose label
     """
 
-    ids = np.atleast_1d(ids)
+    if not isinstance(labels, list):
+        labels = [labels]
 
     labels = []
 
@@ -120,6 +147,15 @@ def read_raw_image(path, report=True):
     Args
     ----
     path (str) : path to the image file
+    report (bool) : output a short log on the imported data 
+
+    Raises
+    ------
+    Exception : If the image passed does not have a file extension that's expected
+
+    Returns 
+    -------
+    numpy array of raw image 
     """
     ext = os.path.splitext(path)[1]
 
@@ -141,18 +177,21 @@ def read_raw_image(path, report=True):
 def image_preprocessor(img, report=True):
     """Normalize the image
 
-     - Convert 16 bit to 8 bit
+     - Convert higher bit images (16, 10, etc) to 8 bit
      - Set color channel to the last channel
 
+    TODO
+    ----
+    Correctly handle images with values [0,1)
 
     Args
     ----
     img (np array) : raw image data
-    channel_last (bool) : 
+    report (bool) : output a short log on the imported data 
 
     Returns 
     -------
-    numpy array of cleaned image data
+    numpy array of cleaned image data with values [0, 255]
     """
 
     data = np.asarray(img)
@@ -207,9 +246,9 @@ def load_from_categorized_directory(path, load_labels):
 def generarate_train_and_test(data, path=None, save=False):
     """Take a reduced dataset and make train and test sets
 
-    Warnings
+    Warning!
     --------
-    Not loading Train and Test sets from the files with contaminate your 
+    Not loading Train and Test sets from files will contaminate your 
     Test set with training data
 
     Args
@@ -249,7 +288,7 @@ def generarate_train_and_test(data, path=None, save=False):
 
 
 def chop_to_blocks(data, shape):
-    """Subdivides the current image and returns an array of DataFrame images 
+    """Subdivides the current image and returns an array of images 
     with the dims `shape`
 
     Args
@@ -258,7 +297,7 @@ def chop_to_blocks(data, shape):
 
     Returns
     -------
-    (list : DataFrame)
+    matrix of (j, i, 1, shape[0], shape[1])
     """
 
     # Make sure there are not multiple strides in the color ch direction 
@@ -299,7 +338,7 @@ def as_batch(img, as_list=False):
 def get_file_name_from_path(path):
     """Extract the file name from a given path
 
-    if path is `/path/to/file/name.ext` then this functions returns `name`
+    If path is `/path/to/file/name.ext` then this functions returns `name`
 
     Args
     ----

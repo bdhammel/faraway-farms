@@ -44,6 +44,7 @@ MAP_TO_LOCAL_LABELS = {
     'swimming-pool'
 }
 
+
 class DOTAImage(clean_utils.RawObjImage):
 
 
@@ -169,13 +170,14 @@ def save_as_retinanet_data(
         annotations_save_dir, 
         percent_test_set=.2
 ):
-    """
+    """Save the data in the csv format expected by RetinaNet
 
     Args
     ----
     ds (list : ObjImage) : Image data set
     image_save_dir (str) :
     annotations_save_dir (str) :
+    percent_test_set (float) : value in [0, 1), percent of data to use as test
     """
     
 

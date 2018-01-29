@@ -10,6 +10,7 @@ from pipeline import utils as pipe_utils
 
 class ObjImage(pipe_utils.SatelliteImage):
 
+
     def __init__(self, image_path=None, data=None):
         """
 
@@ -28,18 +29,6 @@ class ObjImage(pipe_utils.SatelliteImage):
 
         self._check_data(self._data)
         self._features = {}
-
-
-    def set_image_id(self, image_id):
-        """Give this data an id
-
-        Typically this is just the file name
-
-        Args
-        ----
-        image_id (str) : the id to assign the image
-        """
-        self._image_id = image_id
 
 
     def get_features(self):
@@ -69,35 +58,45 @@ class ObjImage(pipe_utils.SatelliteImage):
         return list(self._features.keys())
 
 
-    def show(self, label = None):
+    def show(self, label=None, as_bbox=True):
         """Display the image
 
         Args
         ----
-        label (str) : label to be plotted with the image
+        label (str) : label to be plotted with the image, can be str, list, 
+            or 'all' to plot all labels in the image
+        as_bbox (bool) : draw bounding box as an orthogonal box or polygon?
         """
 
-        plt.imshow(self._data)
-        ax = plt.gca()
+        im = super().show()
 
-        if label is not None:
-            features = self._features.get(label, [])
-        else:
-            features = self.get_features()
+        # If 'all' get all labels in the image
+        if labels == 'all':
+            labels = self.has_labels()
 
-        for loc in features:
-            x1, y1, x2, y2 = loc
-            xy = (x1, y1)
-            width = x2-x1
-            height = y2-y1
-            patch = patches.Rectangle(
-                        xy=xy, width=width, height=height,
-                        label=label, 
-                        color='r',
-                        fill=False
+        # Make sure labels is a list
+        if not isinstance(labels, list):
+            labels = [labels]
+
+        # Initialize a drawer, and draw each feature
+        draw = ImageDraw.Draw(im)       
+
+        for label in labels:
+            locs = self.get_features(as_bbox=as_bbox)[label]
+
+            for coors in locs:
+                if as_bbox:
+                    draw.rectangle(
+                            coors,
+                            outline='red'
+                    )
+                else:
+                    draw.polygon(
+                            coors,
+                            outline='red'
                     )
 
-            ax.add_patch(patch)
+        im.show()
 
 
 def load_data(annotations_file, max_images=100):

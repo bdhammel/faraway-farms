@@ -22,8 +22,6 @@ class PatchIdentifier:
 
         self._augmentor = None
 
-
-
     
     def train(self, Xtrain, Ytrain, epochs=5, batch_size=32, fix_layers=None,
             validation_data=None
@@ -92,7 +90,15 @@ class PatchIdentifier:
         self._augmentor = augmentor
 
 
-    def save(self, path=".models/saved_models/ucmerced.h5"):
+    def save(self, weight_names):
+        """Save the model weights
+
+        Args
+        ----
+        weight_name (str) : name of the weight file with .h5 extension
+        """
+        save_dir = ".models/saved_models/ucmerced.h5"
+        path = os.path.join(save_dir, weight_names)
         self._model.save(path)
 
 
@@ -100,6 +106,7 @@ class PatchIdentifier:
         """
         """
         return self._model.predict(X) 
+
 
     def predict(self, X):
         """
@@ -123,6 +130,7 @@ class PatchIdentifier:
 
     def _images_are_ok(self, images):
         """
+
         TODO: actually do this function 
         """
         return True
