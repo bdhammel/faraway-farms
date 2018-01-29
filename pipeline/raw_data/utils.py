@@ -1,10 +1,7 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import patches
-from pipeline import utils as pipe_utils
 from PIL import Image, ImageDraw
 
-
+from pipeline import utils as pipe_utils
 
 
 
@@ -80,8 +77,7 @@ class RawObjImage:
         labels (list) : list of ints corresponding to feature names
         """
 
-        if not isinstance(labels, list):
-            labels = [labels]
+        labels = pipe_utils.atleast_list(labels)
 
         im = Image.fromarray(self.data)
         draw = ImageDraw.Draw(im)       

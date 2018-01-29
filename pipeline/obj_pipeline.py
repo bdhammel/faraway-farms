@@ -76,8 +76,7 @@ class ObjImage(pipe_utils.SatelliteImage):
             labels = self.has_labels()
 
         # Make sure labels is a list
-        if not isinstance(labels, list):
-            labels = [labels]
+        labels = pipe_utils.atleast_list(labels)
 
         # Initialize a drawer, and draw each feature
         draw = ImageDraw.Draw(im)       

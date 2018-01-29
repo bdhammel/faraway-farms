@@ -349,3 +349,25 @@ def get_file_name_from_path(path):
     """
     return os.path.splitext(os.path.basename(path))[0]
 
+
+def atleast_list(thing):
+    """Make sure the item is at least a list of len(1) if not a list
+    otherwise, return the original list
+
+    Args
+    ----
+    thing (any type) : thing to assert is a list
+
+    Returns
+    -------
+    thing (list)
+    """
+    if not isinstance(thing, list):
+        thing = [thing]
+
+    return thing
+
+
+
+
+
