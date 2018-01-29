@@ -38,7 +38,7 @@ from ..callbacks import RedirectModel
 from ..callbacks.eval import Evaluate
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
-from ..models.resnet import resnet_retinanet
+from ..models.resnet import resnet_retinanet, custom_objects
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
 
@@ -244,7 +244,7 @@ def main(args=None):
     # create the model
     if args.snapshot:
         print('Loading model, this may take a second...')
-        model            = keras.models.load_model(args.snapshot)
+        model            = keras.models.load_model(args.snapshot, custom_objects=custom_objects)
         training_model   = model
         prediction_model = model
     else:
