@@ -1,7 +1,7 @@
 import csv
 import skimage.io as skio
 import matplotlib.pyplot as plt
-from matplotlib import patches
+from PIL import Image, ImageDraw
 import numpy as np
 import os
 
@@ -58,17 +58,18 @@ class ObjImage(pipe_utils.SatelliteImage):
         return list(self._features.keys())
 
 
-    def show(self, label=None, as_bbox=True):
+    def show(self, labels=None, return_image=False):
         """Display the image
 
         Args
         ----
-        label (str) : label to be plotted with the image, can be str, list, 
+        labels (str) : label to be plotted with the image, can be str, list, 
             or 'all' to plot all labels in the image
-        as_bbox (bool) : draw bounding box as an orthogonal box or polygon?
+        return_image (bool) : don't plot the image, just return it, used for 
+            plotting inline with jupyter notebooks
         """
 
-        im = super().show()
+        im = Image.fromarray(self.data)
 
         # If 'all' get all labels in the image
         if labels == 'all':
@@ -82,22 +83,18 @@ class ObjImage(pipe_utils.SatelliteImage):
         draw = ImageDraw.Draw(im)       
 
         for label in labels:
-            locs = self.get_features(as_bbox=as_bbox)[label]
+            locs = self.get_features()[label]
 
             for coors in locs:
-                if as_bbox:
-                    draw.rectangle(
-                            coors,
-                            outline='red'
-                    )
-                else:
-                    draw.polygon(
-                            coors,
-                            outline='red'
-                    )
+                draw.rectangle(
+                        coors,
+                        outline='red'
+                )
 
-        im.show()
-
+        if return_image:
+            return im
+        else:
+            im.show()
 
 def load_data(annotations_file, max_images=100):
     """Load data in from a CSV annotations file
@@ -161,11 +158,9 @@ def update_annotation_file_img_paths(annotation_file_path, new_img_dir):
 
 if __name__ == '__main__':
     ds = load_data('/Users/bdhammel/Documents/insight/harvesting/datasets/obj_detection/harvesting/annotations.csv')
-    plt.ion()
 
     for data in ds:
-        plt.close('all')
         if 'building' in data.has_labels():
-            data.show('building')
+            data.show(labels='building')
             input("press enter to continue")
 

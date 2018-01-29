@@ -1,13 +1,12 @@
 import pickle 
 import numpy as np
-from skimage import transform 
 from skimage.external import tifffile
 from skimage.io import imread
 from skimage.util import view_as_blocks
 from sklearn.model_selection import train_test_split
+from PIL import Image
 import glob
 import os
-import unittest
 import math
 
 
