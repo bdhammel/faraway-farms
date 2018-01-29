@@ -177,16 +177,18 @@ def __build_anchors(anchor_parameters, features):
 def retinanet(
     inputs,
     backbone,
+    bottleneck_layers,
     num_classes,
     anchor_parameters       = AnchorParameters.default,
     create_pyramid_features = __create_pyramid_features,
     submodels               = None,
     name                    = 'retinanet'
 ):
+
     if submodels is None:
         submodels = default_submodels(num_classes, anchor_parameters)
 
-    _, C3, C4, C5 = backbone.outputs  # we ignore C2
+    C3, C4, C5 = [layer.output for layer in backbone.layers if layer.name in bottleneck_layers]
 
     # compute pyramid features as per https://arxiv.org/abs/1708.02002
     features = create_pyramid_features(C3, C4, C5)
@@ -199,6 +201,7 @@ def retinanet(
 
 
 def retinanet_bbox(inputs, num_classes, nms=True, name='retinanet-bbox', *args, **kwargs):
+    
     model = retinanet(inputs=inputs, num_classes=num_classes, *args, **kwargs)
 
     # we expect the anchors, regression and classification values as first output

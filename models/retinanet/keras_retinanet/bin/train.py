@@ -38,7 +38,7 @@ from ..callbacks import RedirectModel
 from ..callbacks.eval import Evaluate
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
-from ..models.resnet import resnet50_retinanet, custom_objects
+from ..models.resnet import resnet_retinanet
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
 
@@ -56,7 +56,7 @@ def create_models(num_classes, weights='imagenet', multi_gpu=0):
     # optionally wrap in a parallel model
     if multi_gpu > 1:
         with tf.device('/cpu:0'):
-            model = resnet50_retinanet(num_classes, weights=weights, nms=False)
+            model = resnet_retinanet(num_classes, weights=weights, nms=False)
         training_model = multi_gpu_model(model, gpus=multi_gpu)
 
         # append NMS for prediction only
@@ -66,7 +66,7 @@ def create_models(num_classes, weights='imagenet', multi_gpu=0):
         detections       = layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
         prediction_model = keras.models.Model(inputs=model.inputs, outputs=model.outputs[:2] + [detections])
     else:
-        model            = resnet50_retinanet(num_classes, weights=weights, nms=True)
+        model            = resnet_retinanet(num_classes, weights=weights, nms=True)
         training_model   = model
         prediction_model = model
 
@@ -244,7 +244,7 @@ def main(args=None):
     # create the model
     if args.snapshot:
         print('Loading model, this may take a second...')
-        model            = keras.models.load_model(args.snapshot, custom_objects=custom_objects)
+        model            = keras.models.load_model(args.snapshot)
         training_model   = model
         prediction_model = model
     else:

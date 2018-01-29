@@ -1,0 +1,1 @@
+python ./keras_retinanet/bin/train.py csv /Users/bdhammel/Documents/insight/harvesting/datasets/obj_detection/dota/train_annot.csv /Users/bdhammel/Documents/insight/harvesting/datasets/obj_detection/dota/classes.csv 
