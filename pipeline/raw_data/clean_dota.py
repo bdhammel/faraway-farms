@@ -28,18 +28,20 @@ from pipeline import obj_pipeline
 MAP_TO_LOCAL_LABELS = {
     'plane', 
     'ship', 
-    'storage tank', 'baseball diamond', 
-    'tennis court', 
-    'basketball court', 
-    'ground track field', 
+    'storage-tank', 
+    'baseball-diamond', 
+    'tennis-court', 
+    'basketball-court', 
+    'ground-track-field', 
     'harbor', 
     'bridge', 
-    'large vehicle', 
-    'small vehicle', 
+    'large-vehicle', 
+    'small-vehicle', 
     'helicopter', 
     'roundabout', 
-    'soccer ball field',
-    'basketball court'
+    'soccer-ball-field',
+    'basketball-court',
+    'swimming-pool'
 }
 
 class DOTAImage(clean_utils.RawObjImage):
@@ -124,10 +126,10 @@ def dota_processor(block_shape):
         if xcenter // xstride == i and ycenter // ystride == j:
             newx = xcenter % xstride
             newy = ycenter % ystride
-            x1_prime = np.maximum(newx - dx/2, 0)
-            y1_prime = np.maximum(newy - dy/2, 0)
-            x2_prime = np.minimum(newx + dx/2, xstride)
-            y2_prime = np.minimum(newy + dy/2, ystride)
+            x1_prime = int(np.maximum(newx - dx/2, 0))
+            y1_prime = int(np.maximum(newy - dy/2, 0))
+            x2_prime = int(np.minimum(newx + dx/2, xstride))
+            y2_prime = int(np.minimum(newy + dy/2, ystride))
 
             return (x1_prime, y1_prime, x2_prime, y2_prime)
 
@@ -218,18 +220,19 @@ def save_as_retinanet_data(
 
 
 if __name__ == "__main__":
-    loader = dota_loader('/Users/bdhammel/Documents/insight/data/dota/labelTxt')
-    raw_img = loader('/Users/bdhammel/Documents/insight/data/dota/images/P1872.png')
-    #print(raw_img.has_labels())
-    #img.show('plane', as_bbox=False)
-    processor = dota_processor(block_shape=(400,400,3))
-    ds = processor(raw_img)
+    pass
+    #loader = dota_loader('/Users/bdhammel/Documents/insight/data/dota/labelTxt')
+    #raw_img = loader('/Users/bdhammel/Documents/insight/data/dota/images/P1872.png')
+    ##print(raw_img.has_labels())
+    ##img.show('plane', as_bbox=False)
+    #processor = dota_processor(block_shape=(400,400,3))
+    #ds = processor(raw_img)
 
-    save_as_retinanet_data(
-        ds, 
-        '/Users/bdhammel/Documents/insight/harvesting/datasets/obj_detection/dota/images',
-        '/Users/bdhammel/Documents/insight/harvesting/datasets/obj_detection/dota/'
-    )
+    #save_as_retinanet_data(
+    #    ds, 
+    #    '/Users/bdhammel/Documents/insight/harvesting/datasets/obj_detection/dota/images',
+    #    '/Users/bdhammel/Documents/insight/harvesting/datasets/obj_detection/dota/'
+    #)
 
 
 

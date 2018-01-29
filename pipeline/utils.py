@@ -60,6 +60,8 @@ class SatelliteImage:
         draw = ImageDraw.Draw(im)       
 
 
+
+
 def ids_to_classes(ids):
     """Convert id integers back to a verbose label
     """
