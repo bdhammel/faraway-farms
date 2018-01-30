@@ -4,7 +4,6 @@ from PIL import Image, ImageDraw
 from pipeline import utils as pipe_utils
 
 
-
 class RawPatchImage(pipe_utils.SatelliteImage):
     pass
 

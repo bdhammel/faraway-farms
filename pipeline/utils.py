@@ -31,6 +31,14 @@ OBJ_CLASS_TO_ID = {
 
 class SatelliteImage:
 
+    def __init__(self, data):
+        """
+        Args
+        ----
+        data (np array) : image data
+        """
+        self._data = data
+
     @property
     def data(self):
         """Return the satellite image data 
@@ -169,6 +177,7 @@ def read_raw_image(path, report=True):
         print("Image {} loaded".format(os.path.basename(path)))
         print("\tShape: ", img.shape)
         print("\tdtype: ", img.dtype)
+        print("Values: ({:.2f},{:.2f})".format(img.min(), img.max())), 
 
     return img
 

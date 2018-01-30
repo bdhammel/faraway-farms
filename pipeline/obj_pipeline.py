@@ -21,7 +21,7 @@ class ObjImage(pipe_utils.SatelliteImage):
         """
 
         if image_path is not None:
-            self._data = skio.imread(image_path)
+            self._data = pipe_utils.read_raw_image(image_path)
             self._image_id = pipe_utils.get_file_name_from_path(image_path)
         elif data is not None:
             self._data = data
@@ -152,6 +152,37 @@ def update_annotation_file_img_paths(annotation_file_path, new_img_dir):
             image_file_name = os.path.basename(old_img_path)
             new_img_path = os.path.join(new_img_dir, image_file_name)
             new_writer.writerow([new_img_path, *row[1:]])
+
+
+def retinanet_preprocessor(data):
+    """Process data in the manner expected by retinanet
+
+    Convert RGB -> BGR
+    normalize in the VGG16 way
+
+    Notes
+    -----
+     - handles batch or single image
+     - do NOT use this with Retina net built in pre processor
+
+    Args
+    ----
+    data (np.array) : of shape ( _, _, 3)
+
+    Returns
+    -------
+    normalized data of the same shape 
+    """
+
+    # flip to BGR channel, cause that's what retina net says to do
+    data = data[...,::-1]
+
+    data[...,0] -= 103.939
+    data[...,1] -= 110.779
+    data[...,2] -= 123.78
+
+    return data
+
 
 
 
