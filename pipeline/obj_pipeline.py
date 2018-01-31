@@ -27,18 +27,11 @@ class ObjImage(pipe_utils.SatelliteImage):
             self._data = data
             self._image_id = None
 
-        self._check_data(self._data)
         self._features = {}
 
 
     def get_features(self):
         return self._features
-
-
-    def _check_data(self, data):
-        #assert data.max() < 1
-        #assert data.std() > .2
-        pass
 
 
     def append_feature(self, label, coor):
@@ -94,6 +87,7 @@ class ObjImage(pipe_utils.SatelliteImage):
             return im
         else:
             im.show()
+
 
 def load_data(annotations_file, max_images=100):
     """Load data in from a CSV annotations file
@@ -173,16 +167,17 @@ def retinanet_preprocessor(data):
     -------
     normalized data of the same shape 
     """
+    
+    assert data.dtype == np.uint8
 
     # flip to BGR channel, cause that's what retina net says to do
     data = data[...,::-1]
 
     data[...,0] -= 103.939
-    data[...,1] -= 110.779
+    data[...,1] -= 116.779
     data[...,2] -= 123.78
 
     return data
-
 
 
 

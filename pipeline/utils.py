@@ -10,6 +10,8 @@ import os
 import math
 
 
+
+
 # Conversion of labels to id for path classification
 PATCH_CLASS_TO_ID = {
     'trees':0,
@@ -146,7 +148,7 @@ def load_pickled_data(path):
     return data
 
 
-def read_raw_image(path, report=True):
+def read_raw_image(path, report=True, check_data=False):
     """Import a raw image 
 
     This could be as 8 bit or 16 bit... or 10 bit like some of the files...
@@ -178,6 +180,10 @@ def read_raw_image(path, report=True):
         print("\tShape: ", img.shape)
         print("\tdtype: ", img.dtype)
         print("Values: ({:.2f},{:.2f})".format(img.min(), img.max())), 
+
+    if check_data:  
+        data_is_ok(img, raise_exception=True)
+       
 
     return img
 
@@ -377,6 +383,21 @@ def atleast_list(thing):
     return thing
 
 
+
+def data_is_ok(data, raise_exception=False):
+    """Do a quick check to see if the data is okay to save
+    """
+
+    _data_is_ok = \
+        data.shape[-1] == 3\
+        and data.dtype == np.uint8 \
+        and data.max() <= 255 \
+        and data.min() >= 0
+
+    if not _data_is_ok and raise_exception:
+        raise Exception("Data isn't okay to save")
+
+    return _data_is_ok
 
 
 

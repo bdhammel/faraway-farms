@@ -40,14 +40,6 @@ class RawObjImage:
         return self._image_id
 
     
-    def check_self(self):
-        datamax = self.data.max()
-        if datamax < 1 and self.data.min() > 0:
-            print("[0,1)")
-        elif datamax < 255:
-            print("[0,255]")
-
-
     def append_feature(self, label, coor):
         """Connect a feature to the imported image
 
@@ -97,7 +89,5 @@ class RawObjImage:
                     )
 
         im.show()
-
-
 
 

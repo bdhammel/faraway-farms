@@ -1,6 +1,7 @@
 import numpy as np
 import os
 from PIL import Image, ImageDraw
+import skimage.io as skio
 import requests
 from tempfile import NamedTemporaryFile
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ from pipeline import utils as pipe_utils
 
 
 MY_API_KEY = os.environ.get('GOOGLE_MAP_KEY', None)
-STATIC_MAP_BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?center={xcenter},{ycenter}&zoom={zoom}&size=600x600&maptype=satellite&key={api_key}'
+STATIC_MAP_BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?center={xcenter},{ycenter}&zoom={zoom}&size=400x400&maptype=satellite&key={api_key}'
 
 
 def fetch_image(params):
@@ -21,7 +22,7 @@ def fetch_image(params):
     with NamedTemporaryFile() as f:
         f.write(requests.get(url).content)
         f.seek(0)
-        img_data = np.asarray(Image.open(f.name))
+        img_data = skio.imread(f.name)
 
     img = pipe_utils.SatelliteImage(img_data)
     
@@ -29,6 +30,7 @@ def fetch_image(params):
 
 
 def preprocess_gogle(img):
+    pass
     
 
 

@@ -96,7 +96,6 @@ def dota_loader(labels_dir):
 
                 img.append_feature(label, coor)
 
-        img.check_self()
 
         return img
     
@@ -106,6 +105,20 @@ def dota_loader(labels_dir):
 
 def dota_processor(block_shape):
     """
+    Args
+    ----
+    block_shape (tup, int) : the shape each block should have after it's chopped
+
+    Example
+    -------
+    processor = dota_processor(block_shape=(400,400,3))
+    loader = dota_loader(dota_label_dir)
+    raw_img = loader(img_path)
+    ds = processor(raw_img)
+
+    Returns
+    -------
+    (list : ObjImage)
     """
 
     ystride, xstride, *_ = block_shape
@@ -120,17 +133,31 @@ def dota_processor(block_shape):
         j
         """
         x1, y1, x2, y2 = coor
-        xcenter = (x2+x1)/2
-        ycenter = (y2+y1)/2
-        dx = x2 - x1
-        dy = y2 - y1
-        if xcenter // xstride == i and ycenter // ystride == j:
-            newx = xcenter % xstride
-            newy = ycenter % ystride
-            x1_prime = int(np.maximum(newx - dx/2, 0))
-            y1_prime = int(np.maximum(newy - dy/2, 0))
-            x2_prime = int(np.minimum(newx + dx/2, xstride))
-            y2_prime = int(np.minimum(newy + dy/2, ystride))
+        inframe = lambda e, stride, n : e // stride == n
+        new_e = lambda e, stride : e % stride
+
+        if (inframe(x1, xstride, i) and inframe(y1, ystride, j)) \
+            or (inframe(x2, xstride, i) and inframe(y2, ystride, j)):
+
+            if inframe(x1, xstride, i):
+                x1_prime = int(new_e(x1, xstride))
+            else:
+                x1_prime = 0
+
+            if inframe(y1, ystride, j):
+                y1_prime = int(new_e(y1, ystride))
+            else:
+                y1_prime = 0
+
+            if inframe(x2, xstride, i):
+                x2_prime = int(new_e(x2, xstride))
+            else:
+                x2_prime = xstride
+
+            if inframe(y2, ystride, j):
+                y2_prime = int(new_e(y2, ystride))
+            else:
+                y2_prime = ystride
 
             return (x1_prime, y1_prime, x2_prime, y2_prime)
 
@@ -162,6 +189,7 @@ def dota_processor(block_shape):
         return ds
     
     return _processor
+
 
 
 def save_as_retinanet_data(
@@ -199,6 +227,10 @@ def save_as_retinanet_data(
         train_writer = csv.writer(train_file)
 
         for img in ds:
+            # skip this image if the data isn't ok
+            if not pipe_utils.data_is_ok(img.data, raise_exception=True):
+                continue
+
             image_path = os.path.join(image_save_dir, img.image_id+'.png')
             skio.imsave(image_path, img.data)
 
@@ -221,22 +253,27 @@ def save_as_retinanet_data(
                 writer.writerow(row)
 
 
+def fetch_image_path(image_name, dota_image_dirs):
+    """Find the full path for a given image name in the dota label file
+    Args
+    ----
+    image_name (str) : the image to look for
+    dota_image_dirs (str) : all directories where the image could be stored
+    
+    Returns
+    -------
+    (str) : full path to the image
+    """
+    for image_dir in dota_image_dirs:
+        path = os.path.join(image_dir, image_name+'.png')
+        if os.path.isfile(path):
+            return path
+    else:
+        print("Could not find the image, ", image_name)
+
+
 if __name__ == "__main__":
     pass
-    #loader = dota_loader('/Users/bdhammel/Documents/insight/data/dota/labelTxt')
-    #raw_img = loader('/Users/bdhammel/Documents/insight/data/dota/images/P1872.png')
-    ##print(raw_img.has_labels())
-    ##img.show('plane', as_bbox=False)
-    #processor = dota_processor(block_shape=(400,400,3))
-    #ds = processor(raw_img)
-
-    #save_as_retinanet_data(
-    #    ds, 
-    #    '/Users/bdhammel/Documents/insight/harvesting/datasets/obj_detection/dota/images',
-    #    '/Users/bdhammel/Documents/insight/harvesting/datasets/obj_detection/dota/'
-    #)
-
-
 
 
 
