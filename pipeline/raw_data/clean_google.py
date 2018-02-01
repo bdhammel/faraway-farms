@@ -2,6 +2,8 @@ import numpy as np
 import os
 from PIL import Image, ImageDraw
 import skimage.io as skio
+from skimage.color import grey2rgb
+
 import requests
 from tempfile import NamedTemporaryFile
 import matplotlib.pyplot as plt
@@ -15,6 +17,7 @@ STATIC_MAP_BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?center={xc
 
 
 def fetch_image(params):
+
     if MY_API_KEY is None:
         raise Exception("You need to set your GOOGLE_MAP_KEY as an enviroment variable")
     url = STATIC_MAP_BASE_URL.format(**params) 
@@ -24,20 +27,37 @@ def fetch_image(params):
         f.seek(0)
         img_data = skio.imread(f.name)
 
+    img_data = __process_google(img_data)
     img = pipe_utils.SatelliteImage(img_data)
     
     return img 
 
 
-def preprocess_gogle(img):
-    pass
+def __process_google(img):
+
+    data = img.data
+
+    # drop alpha channel
+    # make sure RGB channels
+    if np.ndim(data.shape) == 3:
+        if data.shape[-1] == 4:
+            data = data[...,:3]
+    else:
+        data = grey2rgb(data)
     
+    # make sure data is [0, 255]
+    if data.max() < 1 and data.min() > 0:
+        data *= 255
+        data = data.astype(np.uint8)
+
+    return data
 
 
 if __name__ == '__main__':
+
     params = {
-        'xcenter':40.714728,
-        'ycenter':-73.998672,
+        'xcenter':39.13851,
+        'ycenter':-122.24515,
         'zoom':19,
         'api_key':MY_API_KEY
     }

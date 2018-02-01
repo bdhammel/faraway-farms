@@ -31,6 +31,12 @@ class ObjImage(pipe_utils.SatelliteImage):
 
 
     def get_features(self):
+        """Return all the features associated with the image
+
+        Returns 
+        -------
+        dict {label : [x1, y1, x2, y2], [x1, y1, x2, y2], ...}
+        """
         return self._features
 
 
@@ -146,6 +152,27 @@ def update_annotation_file_img_paths(annotation_file_path, new_img_dir):
             image_file_name = os.path.basename(old_img_path)
             new_img_path = os.path.join(new_img_dir, image_file_name)
             new_writer.writerow([new_img_path, *row[1:]])
+
+
+def merge_annotation_files(file1, file2, target_file):
+    """
+    Args
+    ----
+    file1 (str) : path 
+    file2 (str) : path
+    target_file (str) : path
+    """
+
+    with open(file1, 'r') as f1, open(file2, 'r') as f2, open(target_file, 'w') as tf:
+        file1_reader = csv.reader(f1)
+        file2_reader = csv.reader(f2)
+        target_writer = csv.writer(tf)
+
+        for row in file1_reader:
+            target_writer.writerow(row)
+
+        for row in file2_reader:
+            target_writer.writerow(row)
 
 
 def retinanet_preprocessor(data):

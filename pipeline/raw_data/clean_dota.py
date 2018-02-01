@@ -26,23 +26,36 @@ from pipeline import obj_pipeline
 
 
 MAP_TO_LOCAL_LABELS = {
-    'plane':None,
-    'ship':None,
-    'storage-tank':None,
-    'baseball-diamond':None,
-    'tennis-court':None,
-    'basketball-court':None,
-    'ground-track-field':None,
-    'harbor':None,
-    'bridge':None,
-    'large-vehicle':None,
-    'small-vehicle':None,
-    'helicopter':None,
-    'roundabout':None,
-    'soccer-ball-field':None,
-    'basketball-court':None,
-    'swimming-pool':None
+    'plane':'plane',
+    'ship':'ship',
+    'storage-tank':'storage-tank',
+    'baseball-diamond':'baseball-diamond',
+    'tennis-court':'tennis-court',
+    'basketball-court':'basketball-court',
+    'ground-track-field':'ground-track-field',
+    'harbor':'harbor',
+    'bridge':'bridge',
+    'large-vehicle':'vehicle',   # make both a vehicle
+    'small-vehicle':'vehicle',
+    'helicopter':'helicopter',
+    'roundabout':'roundabout',
+    'soccer-ball-field':'soccer-ball-field',
+    'swimming-pool':'swimming-pool'
 }
+
+LABELS_TO_INCLUDE = [
+    'plane',
+    'ship',
+    'storage-tank',
+    'baseball-diamond',
+    'tennis-court',
+    'basketball-court',
+    'vehicle',
+    'helicopter',
+    'soccer-ball-field',
+    'swimming-pool',
+    'house'             # include house for harvesting dataset
+]
 
 
 class DOTAImage(clean_utils.RawObjImage):
@@ -159,7 +172,8 @@ def dota_processor(block_shape):
             else:
                 y2_prime = ystride
 
-            return (x1_prime, y1_prime, x2_prime, y2_prime)
+            if (x2 > x1) and (y2 > y1):
+                return (x1_prime, y1_prime, x2_prime, y2_prime)
 
 
     def _processor(raw_img):
@@ -196,7 +210,8 @@ def save_as_retinanet_data(
         ds, 
         image_save_dir, 
         annotations_save_dir, 
-        percent_test_set=.2
+        percent_test_set=.2,
+        include_labels=LABELS_TO_INCLUDE
 ):
     """Save the data in the csv format expected by RetinaNet
 
@@ -243,14 +258,17 @@ def save_as_retinanet_data(
             # Make a note of every feature and bounding location in the image
             all_features = img.get_features()
             for label, locations in all_features.items():
-                for location in locations:
-                    row = [image_path, *location, label]
-                    writer.writerow(row)
+                label = MAP_TO_LOCAL_LABELS[label]
+                if label in include_labels:
+                    for location in locations:
+                        row = [image_path, *location, label]
+                        writer.writerow(row)
 
             # Write a blank row if no features in this image
             if not all_features:
                 row = [image_path, '', '', '', '', '']
                 writer.writerow(row)
+
 
 
 def fetch_image_path(image_name, dota_image_dirs):

@@ -60,7 +60,7 @@ class RawObjImage:
         return list(self.features.keys())
 
 
-    def show(self, labels=[], as_bbox=True):
+    def show(self, labels=[], as_poly=True):
         """Display the satellite image with the feature overlay
 
         Args
@@ -74,16 +74,16 @@ class RawObjImage:
         draw = ImageDraw.Draw(im)       
 
         for label in labels:
-            locs = self.get_features(as_bbox=as_bbox)[label]
+            locs = self.get_features(as_poly=as_poly)[label]
 
             for coors in locs:
-                if as_bbox:
-                    draw.rectangle(
+                if as_poly:
+                    draw.polygon(
                             coors,
                             outline='red'
                     )
                 else:
-                    draw.polygon(
+                    draw.rectangle(
                             coors,
                             outline='red'
                     )
