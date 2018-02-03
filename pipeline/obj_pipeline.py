@@ -1,3 +1,6 @@
+"""Functions specific to handling cleaned data for the Object detection model
+"""
+
 import csv
 import skimage.io as skio
 import matplotlib.pyplot as plt

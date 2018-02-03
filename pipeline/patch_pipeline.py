@@ -1,3 +1,5 @@
+"""Functions specific to handling cleaned data for the patch detection model
+"""
 import numpy as np
 from pipeline import utils as pipe_utils
 

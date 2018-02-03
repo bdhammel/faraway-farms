@@ -80,5 +80,5 @@ class ObjPipelineTestCase(unittest.TestCase):
     pass
 
 
-
-
+class PatchTestCase(unittest.TestCase):
+    pass
