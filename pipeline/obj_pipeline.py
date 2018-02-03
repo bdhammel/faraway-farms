@@ -9,25 +9,38 @@ from pipeline import utils as pipe_utils
 
 
 class ObjImage(pipe_utils.SatelliteImage):
+    """Class to handle images with bounding box attributes
+
+    ObjImage inherits from Satellite Image to include the generic properties:
+
+    Parameters
+    ----------
+    _data (np.array, int) : image data of the type uint8 with range [0,255]
+    _image_id (str) : a unique identifier for the image, if the image is saves
+    this becomes the file name
+    _features ( {label: [(int, int, int, int), ...], ...}) : (optional) 
+        object features in the image, this property isn't used with patch images
+    """
 
 
-    def __init__(self, image_path=None, data=None):
-        """
+    def __init__(self, image_path=None, data=None, *args, **kwargs):
+        """Loads an image from a processed directory 
 
-        Loads an image from a processed directory 
         Args
         ----
         image_path (str) : location of the image to upload
+        data (np.array) : raw data to load. Data is loaded this way in the  
+        last stage of cleaning, to ensure that internal tests pass
         """
 
         if image_path is not None:
-            self._data = pipe_utils.read_raw_image(image_path)
-            self._image_id = pipe_utils.get_file_name_from_path(image_path)
+            _data = pipe_utils.read_raw_image(image_path)
+            _image_id = pipe_utils.get_file_name_from_path(image_path)
         elif data is not None:
-            self._data = data
-            self._image_id = None
+            _data = data
+            _image_id = None
 
-        self._features = {}
+        super().__init__(data=_data, image_id=_image_id, use='obj', *args, **kwargs)
 
 
     def get_features(self):
@@ -35,7 +48,7 @@ class ObjImage(pipe_utils.SatelliteImage):
 
         Returns 
         -------
-        dict {label : [x1, y1, x2, y2], [x1, y1, x2, y2], ...}
+        dict {label : [(x1, y1, x2, y2), (x1, y1, x2, y2), ...], ...}
         """
         return self._features
 
@@ -53,6 +66,10 @@ class ObjImage(pipe_utils.SatelliteImage):
 
     def has_labels(self):
         """Return the labels connected to this image
+
+        Returns
+        --------
+        [label1, label2, ...]
         """
         return list(self._features.keys())
 
@@ -101,6 +118,8 @@ def load_data(annotations_file, max_images=100):
     Args
     ----
     annotations_file (str) : the path to the annotations.csv file
+    max_images (int) : the maximum number of images to load from a given 
+    annotations_file
     """
 
     dataset = {}
@@ -184,28 +203,33 @@ def retinanet_preprocessor(data):
     Notes
     -----
      - handles batch or single image
-     - do NOT use this with Retina net built in pre processor
+     - do NOT use this with Retina net built in pre processor, the pre-processor, 
+     will do repeat these commands. 
+
+    References
+    ----------
+    (*) keras_retinanet : https://github.com/fizyr/keras-retinanet
 
     Args
     ----
-    data (np.array) : of shape ( _, _, 3)
+    data (np.array) : of shape ( _, 400, 400, 3)
 
     Returns
     -------
     normalized data of the same shape 
     """
-    
-    assert data.dtype == np.uint8
+
+    pipe_utils.data_is_ok(data, use='obj', raise_exception=True)
 
     # flip to BGR channel, cause that's what retina net says to do
     data = data[...,::-1]
 
+    # Normalize to the mean of the color channels
     data[...,0] -= 103.939
     data[...,1] -= 116.779
     data[...,2] -= 123.78
 
     return data
-
 
 
 if __name__ == '__main__':

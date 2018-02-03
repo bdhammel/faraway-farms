@@ -1,8 +1,6 @@
 import keras
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
-#from pipeline.patch_pipeline import import_uc_merced
-
 
 class PatchIdentifier:
 

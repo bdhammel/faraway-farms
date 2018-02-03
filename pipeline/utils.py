@@ -1,15 +1,16 @@
+"""Base functions used to handle clean data before it's feed into a model 
+
+"""
 import pickle 
 import numpy as np
 from skimage.external import tifffile
 from skimage.io import imread
 from skimage.util import view_as_blocks
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split 
 from PIL import Image
 import glob
 import os
 import math
-
-
 
 
 # Conversion of labels to id for path classification
@@ -32,14 +33,34 @@ OBJ_CLASS_TO_ID = {
 
 
 class SatelliteImage:
+    """Base class to store images for loading into the models 
 
-    def __init__(self, data):
+    Properties
+    ----------
+    _data (np.array) : image data
+    _features ( {label: [(int, int, int, int), ...], ...}) : (optional) 
+        object features in the image, this property isn't used with patch images
+    _image_id (str) : a identifier to describe the image
+    """
+
+    def __init__(self, data, image_id=None, use=None, *args, **kwargs):
         """
         Args
         ----
-        data (np array) : image data
+        data (np array) : (optional) image data, typical this is set in the 
+        inherited instances 
+        use (str) : ['obj', 'patch'] The child instance that is loading data, 
+        this determines what tests are run on the data
         """
         self._data = data
+        self._image_id = image_id
+
+        # initialize a blank dictionary to store
+        self._features = {}
+
+        # run internal test to make sure data wasn't loaded incorrectly, 
+        # or from a dirty file
+        data_is_ok(self._data, use, *args, **kwargs)
 
     @property
     def data(self):
@@ -65,7 +86,11 @@ class SatelliteImage:
     def set_image_id(self, image_id):
         """Give this data an id
 
-        Typically this is just the file name
+        Note
+        ----
+        Care should be taken to ensure this is a unique id, but there is no 
+        test in place to check this. Non-Unique ids could result in multiple 
+        images being saved with the same name
 
         Args
         ----
@@ -74,38 +99,35 @@ class SatelliteImage:
         self._image_id = image_id
 
 
-    def check_self(self):
-        """Perform a check to ensure the image data is in the correct range
-
-        TODO
-        ----
-        Actually do a rigorous check 
-        """
-        datamax = self.data.max()
-        if datamax < 1 and self.data.min() > 0:
-            print("[0,1)")
-        elif datamax < 255:
-            print("[0,255]")
-
-
     def show(self):
         """Display the image
+
         Typically this function if overloaded
+
+        Returns
+        -------
+        (PIL.IMAGE)
         """
         im = Image.fromarray(self.data)
         im.show()
         return im
 
 
-def ids_to_classes(ids):
+def ids_to_classes(labels):
     """Convert id integers back to a verbose label
+
+    Args
+    ----
+    ids ( ints ) : list of ids to convert to verbose labels
+
+    Returns
+    -------
+    [label, label, ...]
     """
 
-    if not isinstance(labels, list):
-        labels = [labels]
+    ids = atleast_list(ids)
 
     labels = []
-
     for _id in ids:
         for key, value in CLASS_TO_ID.items():
             if value == _id:
@@ -184,7 +206,6 @@ def read_raw_image(path, report=True, check_data=False):
     if check_data:  
         data_is_ok(img, raise_exception=True)
        
-
     return img
 
 
@@ -288,7 +309,8 @@ def generarate_train_and_test(data, path=None, save=False):
         np.reshape(X, (-1, 200, 200, 3)), 
         np.array(Y), 
         test_size=0.33, 
-        random_state=42)
+        random_state=42
+    )
 
 
     if save and path is not None:
@@ -332,13 +354,18 @@ def chop_to_blocks(data, shape):
 
 
 def as_batch(img, as_list=False):
-    """
+    """Convert an image block group to a list
+
+    After chop_to_blocks, the data has a structure like (jx, ix, 1, 400, 400, 3)
+    convert this to (ix*jx, 400, 400, 3)
 
     Args
     ----
+    img ( np.array) : image data
+    as_list (bool) : return as a list and not a numpy array
     """
     
-    blocks = chop_to_blocks(img, shape=(200,200,3))
+    blocks = chop_to_blocks(img, shape=(400,400,3))
     og_shape = blocks.shape
 
     flat_blocks = blocks.reshape(np.prod(og_shape[:3]), *og_shape[3:])
@@ -384,18 +411,38 @@ def atleast_list(thing):
 
 
 
-def data_is_ok(data, raise_exception=False):
-    """Do a quick check to see if the data is okay to save
+def data_is_ok(data, use, raise_exception=False):
+    """Perform a check to ensure the image data is in the correct range
+
+    Args
+    ----
+    data (np.array) : the image data
+    use (str) : ['obj', 'patch'] the type (or use) of image passed
+    raise_exception (bool) : raise exception if data is not ok
+
+    Returns
+    -------
+    (bool) : True if data is OK, otherwise False
     """
+    try:
+        assert self._data.dtype = np.unit8
+        assert self._data.max() < 255
+        assert self._data.min() < 0
 
-    _data_is_ok = \
-        data.shape[-1] == 3\
-        and data.dtype == np.uint8 \
-        and data.max() <= 255 \
-        and data.min() >= 0
+       # make sure data wasn't normalized to [0,1)
+        assert self._data.max() > 1.0
 
-    if not _data_is_ok and raise_exception:
-        raise Exception("Data isn't okay to save")
+        if use == 'obj'
+            assert self._data.shape == (400,400,3)
+        elif use == 'pathch':
+            assert self._data.shape == (200,200,3)
+    except Exception as e:
+        if raise_exception:
+            raise e
+        else:
+            _data_is_ok = False
+    else:
+        _data_is_ok = True
 
     return _data_is_ok
 
