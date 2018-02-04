@@ -9,6 +9,7 @@ import numpy as np
 import os
 
 from pipeline import utils as pipe_utils
+from pipeline.raw_data import utils as clean_utils
 
 
 class ObjImage(pipe_utils.SatelliteImage):
@@ -37,7 +38,7 @@ class ObjImage(pipe_utils.SatelliteImage):
         """
 
         if image_path is not None:
-            _data = pipe_utils.read_raw_image(image_path)
+            _data = clean_utils.read_raw_image(image_path)
             _image_id = pipe_utils.get_file_name_from_path(image_path)
         elif data is not None:
             _data = data
@@ -152,6 +153,10 @@ def update_annotation_file_img_paths(annotation_file_path, new_img_dir):
     """Automated updating of the image paths in an annotation file
     If the dataset directory gets moved. e.g. to a server
     the image paths in the annotation files will need to be updated
+    
+    Script generates a new file with `old_` prepended onto the file name, so 
+    that if the operation is done incorrectly, the original data can be 
+    regained
 
     Args
     ----
@@ -176,8 +181,13 @@ def update_annotation_file_img_paths(annotation_file_path, new_img_dir):
             new_writer.writerow([new_img_path, *row[1:]])
 
 
+
 def merge_annotation_files(file1, file2, target_file):
-    """
+    """Concatenate one csv file to another. 
+
+    Useful when separate annotation files are built from different "raw_data"
+    scripts
+
     Args
     ----
     file1 (str) : path 

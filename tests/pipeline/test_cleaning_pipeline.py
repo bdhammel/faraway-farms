@@ -7,50 +7,6 @@ from pipeline.raw_data import clean_uc_merced
 from pipeline.raw_data import clean_dstl
 
 
-class UtilsTestCase(unittest.TestCase):
-
-
-    def test_class_to_id(self):
-        """Assert that an id is correctly mapped to it's given class label 
-        """
-        labels = list(pipe_utils.CLASS_TO_ID.keys())
-        true_labels = np.random.choice(labels, 15)
-        true_ids = [pipe_utils.CLASS_TO_ID[label] for label in true_labels]
-        converted_labels = pipe_utils.ids_to_classes(true_ids)
-        nptest.assert_array_equal(true_labels, converted_labels)
-
-
-    @unittest.skip("Unfinished")
-    def test_unnormalized_image(self):
-        """Make sure that an unnormalized image gets normalized correctly 
-
-        - check channel last, 16 bit, and normalization [0,1)
-        """
-        img = pipe_utils.imread("../extras/16bit.tif")
-
-        # sanity check
-        self.assertGreater(img.max(), 255)
-
-        # Assert normalized
-        clean_img = pipe_utils.image_preprocessor(img)
-        self.assertLess(img.max(), 1.)
-        self.assertGreater(img.min(), 0.)
-
-        # assert channel last
-        self.assertEqual(img.shape[-1], 3)
-
-
-    def test_class_ids_are_unique(self):
-        """Make sure that two classes didn't get assigned the same id
-        """
-        labels = list(set(pipe_utils.CLASS_TO_ID.values()))
-        assert len(labels) == max(labels)+1
-
-
-    def test_undesired_labels_arnt_loaded(self):
-        assert False
-
-
 class UCMercedTestCase(unittest.TestCase):
 
 

@@ -1,5 +1,4 @@
 """
-
 WHU_RS19 Dataset
 
 600x600x3 images .jpg format

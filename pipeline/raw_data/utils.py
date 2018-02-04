@@ -1,3 +1,5 @@
+"""Base functions used to handle raw data being loaded, cleaned, and resaved
+"""
 import numpy as np
 from PIL import Image, ImageDraw
 from skimage.external import tifffile
@@ -124,3 +126,74 @@ def read_raw_image(path, report=True, check_data=False):
     return img
 
 
+def load_from_categorized_directory(path, load_labels):
+    """Load in the raw image files into a dictionary
+
+    The directory should contain folders for each specific class, with the 
+    relevant images contained inside. 
+
+    Args
+    ----
+    path (str) : the path to the directory where the images are stored
+
+    Returns
+    -------
+    a dic of the images of form { 'label': [ [img], ...], ...}
+    """
+    data = {}
+
+    for img_path in glob.glob(path + "/**/*"):
+
+        *_, label, im_name = img_path.split(os.path.sep)
+
+        if label in load_labels:
+            img = read_image(img_path)
+            img = clean_image(img)
+
+        data.setdefault(label, []).append(img)
+
+    return data
+
+def generarate_train_and_test(data, path=None, save=False):
+    """Take a reduced dataset and make train and test sets
+
+    Warning!
+    --------
+    Not loading Train and Test sets from files will contaminate your 
+    Test set with training data
+
+    Args
+    ----
+    data (dict) : reduced data from convert_classes()
+    save (bool) : weather or not to pickle the data
+
+    Returns
+    -------
+    Xtrain, Xtest, Ytrain, Ytest
+    """
+
+    X = []
+    Y = []
+
+    for label in data.keys():
+        _x = data[label]
+        Y += [PATCH_CLASS_TO_ID[label]]*len(_x)
+        X += _x
+        del _x
+
+    Xtrain, Xtest, Ytrain, Ytest = train_test_split(
+        np.reshape(X, (-1, 200, 200, 3)), 
+        np.array(Y), 
+        test_size=0.33, 
+        random_state=42
+    )
+
+
+    if save and path is not None:
+        dump_as_pickle(Xtrain, os.path.join(path, "xtrain.p"))
+        dump_as_pickle(Xtest, os.path.join(path, "xtest.p"))
+        dump_as_pickle(Ytrain, os.path.join(path, "ytrain.p"))
+        dump_as_pickle(Ytest, os.path.join(path, "ytest.p"))
+
+
+    return Xtrain, Xtest, Ytrain, Ytest

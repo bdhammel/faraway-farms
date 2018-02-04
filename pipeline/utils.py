@@ -10,6 +10,7 @@ import math
 import glob
 import os
 
+
 # Conversion of labels to id for path classification
 PATCH_CLASS_TO_ID = {
     'trees':0,
@@ -45,9 +46,9 @@ class SatelliteImage:
         Args
         ----
         data (np array) : (optional) image data, typical this is set in the 
-        inherited instances 
+            inherited instances 
         use (str) : ['obj', 'patch'] The child instance that is loading data, 
-        this determines what tests are run on the data
+            this determines what tests are run on the data
         """
         self._data = data
         self._image_id = image_id
@@ -58,6 +59,7 @@ class SatelliteImage:
         # run internal test to make sure data wasn't loaded incorrectly, 
         # or from a dirty file
         data_is_ok(self._data, use, *args, **kwargs)
+
 
     @property
     def data(self):
@@ -110,21 +112,28 @@ class SatelliteImage:
         return im
 
 
-def ids_to_classes(ids):
+def ids_to_classes(ids, use):
     """Convert id integers back to a verbose label
 
     Args
     ----
     ids ( np.array ) : numpy array of ids to convert to verbose labels
+    use (str) : 'patch' or 'obj' what 
 
     Returns
     -------
     [label, label, ...]
     """
+    if use == 'patch':
+        class_items = PATCH_CLASS_TO_ID.items()
+    elif use == 'obj':
+        class_items = OBJ_CLASS_TO_ID.items()
+    else:
+        raise Exception("invalid use")
 
     labels = []
     for _id in ids:
-        for key, value in PATCH_CLASS_TO_ID.items():
+        for key, value in class_items:
             if value == _id:
                 labels.append(key)
 
@@ -163,80 +172,6 @@ def load_pickled_data(path):
         data = pickle.load(f)
 
     return data
-
-
-def load_from_categorized_directory(path, load_labels):
-    """Load in the raw image files into a dictionary
-
-    The directory should contain folders for each specific class, with the 
-    relevant images contained inside. 
-
-    Args
-    ----
-    path (str) : the path to the directory where the images are stored
-
-    Returns
-    -------
-    a dic of the images of form { 'label': [ [img], ...], ...}
-    """
-    data = {}
-
-    for img_path in glob.glob(path + "/**/*"):
-
-        *_, label, im_name = img_path.split(os.path.sep)
-
-        if label in load_labels:
-            img = read_image(img_path)
-            img = clean_image(img)
-
-        data.setdefault(label, []).append(img)
-
-    return data
-
-
-def generarate_train_and_test(data, path=None, save=False):
-    """Take a reduced dataset and make train and test sets
-
-    Warning!
-    --------
-    Not loading Train and Test sets from files will contaminate your 
-    Test set with training data
-
-    Args
-    ----
-    data (dict) : reduced data from convert_classes()
-    save (bool) : weather or not to pickle the data
-
-    Returns
-    -------
-    Xtrain, Xtest, Ytrain, Ytest
-    """
-
-    X = []
-    Y = []
-
-    for label in data.keys():
-        _x = data[label]
-        Y += [PATCH_CLASS_TO_ID[label]]*len(_x)
-        X += _x
-        del _x
-
-    Xtrain, Xtest, Ytrain, Ytest = train_test_split(
-        np.reshape(X, (-1, 200, 200, 3)), 
-        np.array(Y), 
-        test_size=0.33, 
-        random_state=42
-    )
-
-
-    if save and path is not None:
-        dump_as_pickle(Xtrain, os.path.join(path, "xtrain.p"))
-        dump_as_pickle(Xtest, os.path.join(path, "xtest.p"))
-        dump_as_pickle(Ytrain, os.path.join(path, "ytrain.p"))
-        dump_as_pickle(Ytest, os.path.join(path, "ytest.p"))
-
-
-    return Xtrain, Xtest, Ytrain, Ytest
 
 
 def chop_to_blocks(data, shape):
@@ -346,14 +281,14 @@ def data_is_ok(data, use, raise_exception=False):
     try:
         assert data.dtype == np.uint8
         assert data.max() <= 255
-        assert data.min() <= 0
+        assert data.min() >= 0
 
        # make sure data wasn't normalized to [0,1)
         assert data.max() > 1.0
 
         if use == 'obj':
             assert data.shape == (400,400,3)
-        elif use == 'pathch':
+        elif use == 'patch':
             assert data.shape == (200,200,3)
     except Exception as e:
         if raise_exception:
