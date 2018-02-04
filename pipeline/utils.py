@@ -3,15 +3,12 @@
 """
 import pickle 
 import numpy as np
-from skimage.external import tifffile
-from skimage.io import imread
 from skimage.util import view_as_blocks
 from sklearn.model_selection import train_test_split 
 from PIL import Image
+import math
 import glob
 import os
-import math
-
 
 # Conversion of labels to id for path classification
 PATCH_CLASS_TO_ID = {
@@ -113,23 +110,21 @@ class SatelliteImage:
         return im
 
 
-def ids_to_classes(labels):
+def ids_to_classes(ids):
     """Convert id integers back to a verbose label
 
     Args
     ----
-    ids ( ints ) : list of ids to convert to verbose labels
+    ids ( np.array ) : numpy array of ids to convert to verbose labels
 
     Returns
     -------
     [label, label, ...]
     """
 
-    ids = atleast_list(ids)
-
     labels = []
     for _id in ids:
-        for key, value in CLASS_TO_ID.items():
+        for key, value in PATCH_CLASS_TO_ID.items():
             if value == _id:
                 labels.append(key)
 
@@ -166,85 +161,6 @@ def load_pickled_data(path):
 
     with open(path, "rb") as f:
         data = pickle.load(f)
-
-    return data
-
-
-def read_raw_image(path, report=True, check_data=False):
-    """Import a raw image 
-
-    This could be as 8 bit or 16 bit... or 10 bit like some of the files...
-
-    Args
-    ----
-    path (str) : path to the image file
-    report (bool) : output a short log on the imported data 
-
-    Raises
-    ------
-    Exception : If the image passed does not have a file extension that's expected
-
-    Returns 
-    -------
-    numpy array of raw image 
-    """
-    ext = os.path.splitext(path)[1]
-
-    if ext in [".jpg", ".png"]:
-        img = imread(path)
-    elif ext == ".tif":
-        img = tifffile.imread(path)
-    else:
-        raise Exception("{} Not a supported extension".format(ext))
-
-    if report:
-        print("Image {} loaded".format(os.path.basename(path)))
-        print("\tShape: ", img.shape)
-        print("\tdtype: ", img.dtype)
-        print("Values: ({:.2f},{:.2f})".format(img.min(), img.max())), 
-
-    if check_data:  
-        data_is_ok(img, raise_exception=True)
-       
-    return img
-
-
-def image_preprocessor(img, report=True):
-    """Normalize the image
-
-     - Convert higher bit images (16, 10, etc) to 8 bit
-     - Set color channel to the last channel
-
-    TODO
-    ----
-    Correctly handle images with values [0,1)
-
-    Args
-    ----
-    img (np array) : raw image data
-    report (bool) : output a short log on the imported data 
-
-    Returns 
-    -------
-    numpy array of cleaned image data with values [0, 255]
-    """
-
-    data = np.asarray(img)
-
-    # set the color channel to last if in channel_first format
-    if len(data.shape) == 3 and data.shape[-1] != 3:
-        data = np.rollaxis(data, 0, 3) 
-
-    # if > 8 bit, shift to a 255 pixel max
-    bitspersample = int(math.ceil(math.log(data.max(), 2)))
-    if bitspersample > 8:
-        data >>= bitspersample - 8
-        data.astype('B')
-
-    if report:
-        print("Cleaned To:")
-        print("\tShape: ", data.shape)
-        print("\tdtype: ", data.dtype)
 
     return data
 
@@ -301,7 +217,7 @@ def generarate_train_and_test(data, path=None, save=False):
 
     for label in data.keys():
         _x = data[label]
-        Y += [CLASS_TO_ID[label]]*len(_x)
+        Y += [PATCH_CLASS_TO_ID[label]]*len(_x)
         X += _x
         del _x
 
@@ -353,11 +269,14 @@ def chop_to_blocks(data, shape):
     return view_as_blocks(_data, shape) 
 
 
-def as_batch(img, as_list=False):
+def as_batch(img, shape, as_list=False):
     """Convert an image block group to a list
 
     After chop_to_blocks, the data has a structure like (jx, ix, 1, 400, 400, 3)
-    convert this to (ix*jx, 400, 400, 3)
+    convert this to:
+
+    obj_detection : (ix*jx, 400, 400, 3)
+    patch_identification : (ix*jx, 200, 200, 3)
 
     Args
     ----
@@ -365,7 +284,7 @@ def as_batch(img, as_list=False):
     as_list (bool) : return as a list and not a numpy array
     """
     
-    blocks = chop_to_blocks(img, shape=(400,400,3))
+    blocks = chop_to_blocks(img, shape=shape)
     og_shape = blocks.shape
 
     flat_blocks = blocks.reshape(np.prod(og_shape[:3]), *og_shape[3:])
@@ -425,17 +344,17 @@ def data_is_ok(data, use, raise_exception=False):
     (bool) : True if data is OK, otherwise False
     """
     try:
-        assert self._data.dtype = np.unit8
-        assert self._data.max() < 255
-        assert self._data.min() < 0
+        assert data.dtype == np.uint8
+        assert data.max() <= 255
+        assert data.min() <= 0
 
        # make sure data wasn't normalized to [0,1)
-        assert self._data.max() > 1.0
+        assert data.max() > 1.0
 
-        if use == 'obj'
-            assert self._data.shape == (400,400,3)
+        if use == 'obj':
+            assert data.shape == (400,400,3)
         elif use == 'pathch':
-            assert self._data.shape == (200,200,3)
+            assert data.shape == (200,200,3)
     except Exception as e:
         if raise_exception:
             raise e
@@ -446,5 +365,89 @@ def data_is_ok(data, use, raise_exception=False):
 
     return _data_is_ok
 
+
+def image_save_preprocessor(img, report=True):
+    """Normalize the image
+
+     - Convert higher bit images (16, 10, etc) to 8 bit
+     - Set color channel to the last channel
+
+    TODO
+    ----
+    Correctly handle images with values [0,1)
+
+    Args
+    ----
+    img (np array) : raw image data
+    report (bool) : output a short log on the imported data 
+
+    Returns 
+    -------
+    numpy array of cleaned image data with values [0, 255]
+    """
+
+    data = np.asarray(img)
+
+    # set the color channel to last if in channel_first format
+    if len(data.shape) == 3 and data.shape[-1] != 3:
+        data = np.rollaxis(data, 0, 3) 
+
+    # if > 8 bit, shift to a 255 pixel max
+    bitspersample = int(math.ceil(math.log(data.max(), 2)))
+    if bitspersample > 8:
+        data >>= bitspersample - 8
+        data.astype('B')
+
+    if report:
+        print("Cleaned To:")
+        print("\tShape: ", data.shape)
+        print("\tdtype: ", data.dtype)
+
+    return data
+
+
+def preprocess_image(data, use):
+    """Process data in the manner expected by retinanet
+
+    Convert RGB -> BGR
+    normalize in the VGG16 way
+
+    Notes
+    -----
+     - handles batch or single image
+     - do NOT use this with Retina net built in pre processor, the pre-processor, 
+     will repeat these commands. 
+
+    References
+    ----------
+    (*) keras_retinanet : https://github.com/fizyr/keras-retinanet
+
+    Args
+    ----
+    data (np.array) : of shape ( _, 400, 400, 3) for obj identification 
+        or (_, 200, 200, 3) for patch identification
+
+    Returns
+    -------
+    normalized data of the same shape 
+    """
+
+    try:
+        data_is_ok(data, use, raise_exception=True)
+    except Exception as e:
+        data = image_save_preprocessor(data, report=False)
+        # Doing this for debug purposes
+        raise e
+
+    # flip to BGR channel, cause that's what retina net says to do
+    # cast as float
+    data = data[...,::-1].astype(np.float32)
+
+    # Normalize to the mean of the color channels
+    data[...,0] -= 103.939
+    data[...,1] -= 116.779
+    data[...,2] -= 123.78
+
+    return data
 
 

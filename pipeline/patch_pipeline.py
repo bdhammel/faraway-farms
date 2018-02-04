@@ -4,7 +4,7 @@ import numpy as np
 from pipeline import utils as pipe_utils
 
 
-class PatchImage:
+class PatchDataSet:
 
     class_to_id = pipe_utils.PATCH_CLASS_TO_ID
 
@@ -30,8 +30,7 @@ class PatchImage:
         """
         Returns 
         -------
-        X training data, Y training data
-        """
+        X training data, Y training data """
         return self.Xtrain, self.Ytrain
 
 
@@ -62,11 +61,5 @@ class PatchImage:
             for _class, _id in self.class_to_id.items():
                 if _id == class_id:
                     return _class
-
-
-
-if __name__ == "__main__":
-
-    ds = PatchImage(path="../../datasets/uc_merced/")
 
 

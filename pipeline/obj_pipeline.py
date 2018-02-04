@@ -197,42 +197,6 @@ def merge_annotation_files(file1, file2, target_file):
             target_writer.writerow(row)
 
 
-def retinanet_preprocessor(data):
-    """Process data in the manner expected by retinanet
-
-    Convert RGB -> BGR
-    normalize in the VGG16 way
-
-    Notes
-    -----
-     - handles batch or single image
-     - do NOT use this with Retina net built in pre processor, the pre-processor, 
-     will do repeat these commands. 
-
-    References
-    ----------
-    (*) keras_retinanet : https://github.com/fizyr/keras-retinanet
-
-    Args
-    ----
-    data (np.array) : of shape ( _, 400, 400, 3)
-
-    Returns
-    -------
-    normalized data of the same shape 
-    """
-
-    pipe_utils.data_is_ok(data, use='obj', raise_exception=True)
-
-    # flip to BGR channel, cause that's what retina net says to do
-    data = data[...,::-1]
-
-    # Normalize to the mean of the color channels
-    data[...,0] -= 103.939
-    data[...,1] -= 116.779
-    data[...,2] -= 123.78
-
-    return data
 
 
 if __name__ == '__main__':

@@ -34,7 +34,7 @@ TODO
 import keras
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
-from pipeline imoprt patch_pipeline
+from pipeline import patch_pipeline
 
 
 class PatchIdentifier:

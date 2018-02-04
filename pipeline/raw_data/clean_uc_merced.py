@@ -32,7 +32,7 @@ References
 """
 
 import numpy as np
-from pipeline import utils
+from pipeline import utils as pipe_utils
 
 
 MAP_TO_LOCAL_LABELS = {
@@ -83,14 +83,12 @@ def convert_classes(raw_data):
 
 
 def import_merced_data(self):
-    from importlib import reload
-    reload(utils)
 
-    data = utils.load_from_categorized_directory("/Volumes/insight/data/UCMerced_LandUse/Images")
+    data = pipe_utils.load_from_categorized_directory("/Volumes/insight/data/UCMerced_LandUse/Images")
     reduced_data = convert_classes(data)
     del data
 
-    utils.generarate_train_and_test(
+    pipe_utils.generarate_train_and_test(
             reduced_data, 
             path="/Users/bdhammel/Documents/insight/harvesting/datasets/uc_merced/", 
             save=True

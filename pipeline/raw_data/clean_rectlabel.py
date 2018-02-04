@@ -1,10 +1,9 @@
-"""This script handles cleaning data that was labeled by Harvesting 
+"""This script handles cleaning data that was labeled using the program RectLabel
 
-Images consist of labeled images from UC Merced's sparse residential category
 
 References
 ----------
- (*) http://weegee.vision.ucmerced.edu/datasets/landuse.html
+ (*) https://rectlabel.com/
 
 """
 import glob
@@ -12,15 +11,14 @@ import os
 import csv
 import skimage.io as skio
 import xml.etree.ElementTree as ET
-import matplotlib.pyplot as plt
-from matplotlib import patches
 import numpy as np 
-from pipeline import utils as pipe_utils 
 from skimage.transform import resize as sk_resize 
 from pipeline.raw_data import utils as clean_utils
 from pipeline import obj_pipeline
 from skimage.color import grey2rgb
 
+
+# Convert labels labeled by Harvesting
 MAP_TO_LOCAL_LABELS = {
     'building':'house',         # Match with DOTA data set 
     'vehicle':'vehicle',
@@ -28,7 +26,10 @@ MAP_TO_LOCAL_LABELS = {
 }
 
 
-class HarvestingImage(clean_utils.RawObjImage):
+
+class RectLabelImage(clean_utils.RawObjImage):
+    """Class of a 
+    """
 
     def get_features(self, *args, **kwargs):
         return self._features
