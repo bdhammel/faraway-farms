@@ -26,9 +26,8 @@ MAP_TO_LOCAL_LABELS = {
 }
 
 
-
 class RectLabelImage(clean_utils.RawObjImage):
-    """Class of a 
+    """Class of an image from the program RectLabel
     """
 
     def get_features(self, *args, **kwargs):
@@ -43,9 +42,13 @@ def load_raw_images(image_dir, xml_annotations_dir):
 
     Args
     ----
+    image_dir (str) : path to the directory containing images to import
+    xml_annotations_dir (str) : path to the directory containing the 
+        annotation files generate by RetcLabel
 
     Returns
     -------
+    list of RectLabelImage with features
     """
 
     ds = []
@@ -55,7 +58,7 @@ def load_raw_images(image_dir, xml_annotations_dir):
         r = tree.getroot()
         img_file = os.path.join(image_dir, r.find('filename').text)
 
-        img = HarvestingImage(img_file)
+        img = RectLabelImage(img_file)
 
         for obj in r.findall('object'):
             label = obj.find('name').text
@@ -69,6 +72,7 @@ def load_raw_images(image_dir, xml_annotations_dir):
         ds.append(img)
 
     return ds
+
 
 def __process_custom(data):
 
@@ -90,15 +94,21 @@ def __process_custom(data):
 
 
 def process_raw_dataset(raw_ds, target_size=(400,400)):
+    """
+    """
     ds = []
+
     for raw_img in raw_ds:
 
+        # Get the aspect ratio of the image, so that when it's resized, the 
+        # bounding boxes can be resized correctly
         yshape, xshape, _ = raw_img.data.shape
         yratio = target_size[0]/yshape
         xratio = target_size[1]/xshape
         data = sk_resize(raw_img.data, target_size, preserve_range=True)
         data = __process_custom(data)
 
+        
         img = obj_pipeline.ObjImage(data=data)
         img.set_image_id(raw_img.image_id)
 
@@ -107,6 +117,7 @@ def process_raw_dataset(raw_ds, target_size=(400,400)):
             if local_label is not None:
                 for feature in features:
                     x1, y1, x2, y2 = feature
+
                     # if box was drawn from the bottom right to the top left, 
                     # switch the order
                     if (x1 > x2) and (y1 > y2):
@@ -133,24 +144,10 @@ def process_raw_dataset(raw_ds, target_size=(400,400)):
 
 
 
-def augment(img):
-    return img
-
-
-
-def data_generator(ds, max_num):
-
-    for i in range(max_num):
-        np.random.seed()
-        random_img = np.random.choice(ds)
-        _id = int(1e5*np.random.random())
-        random_img.set_image_id(random_img.image_id + '_{}'.format(_id))
-        random_img = augment(random_img)
-        
-        yield random_img
-
-
 def save_dataset(ds, upsample=False, max_images=100):
+    """
+    """
+
     if not os.path.exists(image_save_dir):
         print("Creating directory to save processed images")
         os.makedirs(image_save_dir)
@@ -182,20 +179,6 @@ def save_dataset(ds, upsample=False, max_images=100):
                     # output to file
                     annotation_writer.writerow(row)
 
-
-
-def process_directory(image_dir, image_save_dir, annotations_save_dir):
-    """Read in and process a full directory
-
-    Saves the processed information
-
-    Args
-    ----
-    image_dir
-    image_save_path
-    annotation_save_path
-    """
-    pass
 
 
 

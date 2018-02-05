@@ -23,17 +23,14 @@ UC Merced Classes:
     storagetanks
     tenniscourt
 
-UC merced images seem to have already been normalized to [0,1)
+
+UC merced saved images are normalized to [0,1), so this needs to be fixed
 
 References
 ----------
  (*) http://weegee.vision.ucmerced.edu/datasets/landuse.html
 
 """
-
-import numpy as np
-from pipeline import utils as pipe_utils
-
 
 MAP_TO_LOCAL_LABELS = {
         'agricultural':'crops',
@@ -60,27 +57,6 @@ MAP_TO_LOCAL_LABELS = {
 }
 
 
-def convert_classes(raw_data):
-    """Convert the MC Land use classes to the specific things I'm interested in 
-
-    Args
-    ----
-    raw_data (dict) : dictionary of raw data, gotten from load_raw_data()
-
-    Returns
-    -------
-    Similar dictionary but with labels of specific interest 
-    """
-
-    data = {}
-
-    for merced_label, images in raw_data.items():
-        label = MAP_TO_LOCAL_LABELS[merced_label]
-        if label:
-            data[label] = images
-
-    return data
-
 
 def import_merced_data(self):
 
@@ -93,13 +69,3 @@ def import_merced_data(self):
             path="/Users/bdhammel/Documents/insight/harvesting/datasets/uc_merced/", 
             save=True
             )
-
-
-if __name__ == '__main__':
-    #import_merced_data()
-    pass
-
-
-
-
-

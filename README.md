@@ -1,20 +1,56 @@
-# Harvesting Inc
+# Faraway Farms
 
-Count the barn!
-
-## Company description
-Connecting finance with small farmholders
-
-## Project Description
-It's important for lenders to know the asset situation of the farmers, but its very hard to go to individual farmers, especially in rural areas in developing countries where farms are very small and it's very hard for lenders to visit individual farm/farmers. We want to develop a scalable way to identify & count certain farming/agriculture assets using remotely sensed satellite imagery within a specific region of interest. 
-
-We would provide a virtual machine to candidate, where he/she should install the code and show optimized code is able to identify & count the assets. Working code on server is the delivery. We would like to publish this open source code on production server, with UI layer on top of it, to showcase some of the early capabilities in detecting agriculture assets.
-
-## Available data
-Data primarily includes remote sensing satellite data. Petabytes of data. Raw imagery files.
-
-## Prior work
-Open source code is available with training data which can help detect various different type of geospatial features such as maybe a type of tree or water well or maybe hut. This project is more on the lines of using existing code and optimizing it to track other types of assets. 
+Counting sheep without falling asleep
 
 
-See Examples.ipynb
+#### Abstract 
+Identify, locate, and count objects of interest given a Satallite image.  
+
+In rural and hard to reach regions of the world, farmers struggle to qualify for financial loans. A large factor is do to the difficulty in having a credit agency visit their land to itemize assets and evaluate creditworthiness. This project investigates the feasibility of using a convolutional neural network to itemize assets through remote sensing. That is, an object detection model is employed to analyze satellite images.
+
+Do to the limited availability of labeled farm equipment in satellite images, I explore a proof-of-principle model using readily available datasets in the public domain. 
+
+[Google Slides](http://bit.ly/faraway-farms)
+
+## Examples
+
+Examples on using the scripts contained in this package can be found in the folder `workspace`.
+
+## Installation
+
+The contained file, `requirements.txt`, contains the python package dependance for this projects. Installation of these can be performed via 
+
+~~~
+pip install -r requirements.txt
+~~~ 
+
+## Technical Discussion
+
+Two models are implemented in the projects. A classification model, witch labels a patch of an image with the most probable class. And an object detection model, which locates, counts and identifies specific objects of interest.
+
+### Patch Identification
+
+The model employed for patch identification uses some of the convolutional layers from Inception V3 for feature extraction, and two dense layers as a custom classifier. 
+
+Inception V3 was chosen because it is the most accurate model per number of parameters. In theory, fewer parameters will reduce the likely hood of overfitting. 
+
+In addition to this, the convolutional layers after the 6th concatenation node are dropped. This was done for the same reason.
+
+
+### Object Detection 
+
+RetinaNet was selected as the object detection model because of its success in identifying densely packed objects [1]. This is attributed to the implementation of a weighted loss function, dubbed focal loss, which addresses the issue of class imbalance between objects of interest and the image background.
+
+
+[1] [Focal Loss for Dense Object Detection](https://arxiv.org/abs/1708.02002)
+
+
+## Tests
+
+Tests can be executed with the following command:
+
+~~~
+python -m tests/pipeline/test_pipeline.py
+~~~
+
+## Next Steps

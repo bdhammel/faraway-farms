@@ -265,13 +265,14 @@ def atleast_list(thing):
 
 
 
-def data_is_ok(data, use, raise_exception=False):
+def data_is_ok(data, use=None, raise_exception=False):
     """Perform a check to ensure the image data is in the correct range
 
     Args
     ----
     data (np.array) : the image data
-    use (str) : ['obj', 'patch'] the type (or use) of image passed
+    use (str) : ['obj', 'patch', 'None'] the type (or use) of image passed, 
+        this is for checking the image shape, if None, don't check the shape
     raise_exception (bool) : raise exception if data is not ok
 
     Returns
@@ -304,6 +305,8 @@ def data_is_ok(data, use, raise_exception=False):
 def image_save_preprocessor(img, report=True):
     """Normalize the image
 
+    Proc
+
      - Convert higher bit images (16, 10, etc) to 8 bit
      - Set color channel to the last channel
 
@@ -333,16 +336,24 @@ def image_save_preprocessor(img, report=True):
         data >>= bitspersample - 8
         data.astype('B')
 
+
     if report:
         print("Cleaned To:")
         print("\tShape: ", data.shape)
         print("\tdtype: ", data.dtype)
 
+
+    # Make sure the data is actually in the correct format
+    data_is_ok(data, raise_exception=True)
+
     return data
 
 
-def preprocess_image(data, use):
+def preprocess_image_for_model(data, use):
     """Process data in the manner expected by retinanet
+
+    preprocessor That takes a clean image and performs final adjustments 
+    before it's feed into a model
 
     Convert RGB -> BGR
     normalize in the VGG16 way

@@ -115,6 +115,16 @@ class DataCheckTestCase(unittest.TestCase):
             pipe_utils.data_is_ok(faux_data, use='patch', raise_exception=True)
 
 
+    def test_image_has_alpha_channel(self):
+        """Make sure that an image with an alpha channel doesn't pass the data
+        check
+        """
+        faux_data = np.ones(shape=(200,200,4), dtype=np.uint8)
+
+        with self.assertRaises(Exception):
+            pipe_utils.data_is_ok(faux_data, use='patch', raise_exception=True)
+
+
 class GenerateTrainTestSetTestCase(unittest.TestCase):
 
 

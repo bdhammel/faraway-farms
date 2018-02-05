@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 from skimage.external import tifffile
 from skimage.io import imread
+import glob
 import os
 
 from pipeline import utils as pipe_utils
@@ -62,6 +63,7 @@ class RawObjImage(pipe_utils.SatelliteImage):
         Args
         ----
         labels (list) : list of ints corresponding to feature names
+        as_poly (bool) : plot the feature as a polygon instead of a bounding box
         """
 
         labels = pipe_utils.atleast_list(labels)
@@ -147,12 +149,22 @@ def load_from_categorized_directory(path, load_labels):
         *_, label, im_name = img_path.split(os.path.sep)
 
         if label in load_labels:
-            img = read_image(img_path)
-            img = clean_image(img)
-
-        data.setdefault(label, []).append(img)
+            try:
+                img = read_raw_image(img_path)
+            except:
+                # Assuming a file with an extension other than .jpg, .tif, 
+                # or .png was in the directory, just skip
+                #
+                # WARNING: this is going on faith that read_raw_image wont
+                # raise an error for other reasons... that's probably not a 
+                # good assumption 
+                pass
+            else:
+                img = pipe_utils.image_save_preprocessor(img)
+                data.setdefault(label, []).append(img)
 
     return data
+
 
 def generarate_train_and_test(data, path=None, save=False):
     """Take a reduced dataset and make train and test sets
@@ -188,12 +200,35 @@ def generarate_train_and_test(data, path=None, save=False):
         random_state=42
     )
 
-
     if save and path is not None:
         dump_as_pickle(Xtrain, os.path.join(path, "xtrain.p"))
         dump_as_pickle(Xtest, os.path.join(path, "xtest.p"))
         dump_as_pickle(Ytrain, os.path.join(path, "ytrain.p"))
         dump_as_pickle(Ytest, os.path.join(path, "ytest.p"))
 
-
     return Xtrain, Xtest, Ytrain, Ytest
+
+
+def convert_classes(raw_data, local_label_dict):
+    """Convert the MC Land use classes to the specific things I'm interested in 
+
+    Args
+    ----
+    raw_data (dict) : dictionary of raw data, returned from load_raw_data()
+    local_label_dict (dict) : a dictionary that maps the datasets labels into 
+        the labels used by the model
+
+    Returns
+    -------
+    Similar dictionary but with labels of specific interest 
+    """
+
+    data = {}
+
+    for label, images in raw_data.items():
+        local_label = local_label_dict[label]
+        if label:
+            data[local_label] = images
+
+    return data
+
