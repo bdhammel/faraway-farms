@@ -146,6 +146,11 @@ def dota_processor(block_shape):
         j
         """
         x1, y1, x2, y2 = coor
+
+        dx = x2-x1
+        dy = y2-y1
+        A = dx*dy
+
         inframe = lambda e, stride, n : e // stride == n
         new_e = lambda e, stride : e % stride
 
@@ -172,7 +177,13 @@ def dota_processor(block_shape):
             else:
                 y2_prime = ystride
 
-            if (x2 > x1) and (y2 > y1):
+            dx_prime = x2_prime - x1_prime
+            dy_prime = y2_prime - y1_prime
+            A_prime = dx_prime * dy_prime
+
+            # Save the feature if the box is valid, and if the area of the box 
+            # is at least 30% of the original object area
+            if (x2 > x1) and (y2 > y1) and (A_prime > .4*A):
                 return (x1_prime, y1_prime, x2_prime, y2_prime)
 
 
