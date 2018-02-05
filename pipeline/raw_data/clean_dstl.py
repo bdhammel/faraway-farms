@@ -3,6 +3,11 @@ cleaning it, and saving it in a format that's appropriate to be read in by the
 keras-retinanet model
 
 
+Warning
+-------
+This is incomplete
+
+
 References
 ----------
 (*) https://www.kaggle.com/c/dstl-satellite-imagery-feature-detection

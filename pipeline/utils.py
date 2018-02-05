@@ -4,7 +4,6 @@
 import pickle 
 import numpy as np
 from skimage.util import view_as_blocks
-from sklearn.model_selection import train_test_split 
 from skimage.color import grey2rgb
 from PIL import Image
 import math
@@ -292,7 +291,7 @@ def data_is_ok(data, use=None, raise_exception=False):
             assert data.shape == (400,400,3)
         elif use == 'patch':
             assert data.shape == (200,200,3)
-    except Exception as e:
+    except AssertionError as e:
         if raise_exception:
             raise e
         else:

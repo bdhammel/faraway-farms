@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 from skimage.external import tifffile
 from skimage.io import imread
+from sklearn.model_selection import train_test_split 
 import glob
 import os
 
@@ -101,7 +102,8 @@ def read_raw_image(path, report=True, check_data=False):
 
     Raises
     ------
-    Exception : If the image passed does not have a file extension that's expected
+    ImportError : If the image passed does not have a file extension that's expected
+    AssertionError : if data_is_ok fails when check_data=True
 
     Returns 
     -------
@@ -114,7 +116,7 @@ def read_raw_image(path, report=True, check_data=False):
     elif ext == ".tif":
         img = tifffile.imread(path)
     else:
-        raise Exception("{} Not a supported extension".format(ext))
+        raise ImportError("{} Not a supported extension".format(ext))
 
     if report:
         print("Image {} loaded".format(os.path.basename(path)))
@@ -123,7 +125,7 @@ def read_raw_image(path, report=True, check_data=False):
         print("Values: ({:.2f},{:.2f})".format(img.min(), img.max())), 
 
     if check_data:  
-        data_is_ok(img, raise_exception=True)
+        pipe_utils.data_is_ok(img, raise_exception=True)
        
     return img
 
@@ -151,7 +153,7 @@ def load_from_categorized_directory(path, load_labels):
         if label in load_labels:
             try:
                 img = read_raw_image(img_path)
-            except:
+            except ImportError:
                 # Assuming a file with an extension other than .jpg, .tif, 
                 # or .png was in the directory, just skip
                 #
@@ -187,9 +189,14 @@ def generarate_train_and_test(data, path=None, save=False):
     X = []
     Y = []
 
+
+    if not os.path.exists(path):
+        print("Creating directory to save processed images")
+        os.makedirs(path)
+
     for label in data.keys():
         _x = data[label]
-        Y += [PATCH_CLASS_TO_ID[label]]*len(_x)
+        Y += [label]*len(_x)
         X += _x
         del _x
 

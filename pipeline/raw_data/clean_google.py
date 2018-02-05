@@ -21,8 +21,11 @@ def fetch_image(xcenter, ycenter, zoom, api_key):
 
     Args
     -----
+    xcenter (float) :
+    ycenter (float) :
+    zoom (int) : zoom of the image, typically a value between [15,20]
+    api_key (str) :
     """
-
 
     url = STATIC_MAP_BASE_URL.format(
             xcenter=xcenter,
