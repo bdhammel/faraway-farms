@@ -16,11 +16,20 @@ MY_API_KEY = os.environ.get('GOOGLE_MAP_KEY', None)
 STATIC_MAP_BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?center={xcenter},{ycenter}&zoom={zoom}&size=400x400&maptype=satellite&key={api_key}'
 
 
-def fetch_image(params):
+def fetch_image(xcenter, ycenter, zoom, api_key):
+    """Download a satellite image from google
 
-    if MY_API_KEY is None:
-        raise Exception("You need to set your GOOGLE_MAP_KEY as an enviroment variable")
-    url = STATIC_MAP_BASE_URL.format(**params) 
+    Args
+    -----
+    """
+
+
+    url = STATIC_MAP_BASE_URL.format(
+            xcenter=xcenter,
+            ycenter=ycenter,
+            zoom=zoom,
+            api_key=api_key
+    ) 
 
     with NamedTemporaryFile() as f:
         f.write(requests.get(url).content)
@@ -55,6 +64,9 @@ def __process_google(img):
 
 if __name__ == '__main__':
 
+    if MY_API_KEY is None:
+        raise Exception("You need to set your GOOGLE_MAP_KEY as an enviroment variable")
+
     params = {
         'xcenter':39.13851,
         'ycenter':-122.24515,
@@ -62,7 +74,7 @@ if __name__ == '__main__':
         'api_key':MY_API_KEY
     }
 
-    img = fetch_image(params)
+    img = fetch_image(**params)
     img.show()
 
 
