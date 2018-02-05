@@ -53,8 +53,75 @@ class SatalliteImageTestCase(unittest.TestCase):
 
 
 class ImagePreprocessTestCase(unittest.TestCase):
-    pass
 
+
+    def test_alpha_channel_dropped(self):
+        """test that a 4th color channel, the alpha channel, is dropped from the
+        image
+        """
+        faux_data = 100*np.ones(shape=(300,300,4), dtype=np.uint8)
+        # sanity check
+        self.assertTrue(faux_data.shape[-1] == 4)
+
+        cleaned_data = pipe_utils.image_save_preprocessor(faux_data, report=False)
+        self.assertTrue(cleaned_data.shape[-1] == 3)
+
+        # make sure values weren't changed
+        nptest.assert_array_equal(cleaned_data, faux_data[...,:3])
+
+
+    def test_bw_to_color(self):
+        """Check that a BW image is turned to RGB color channels
+        """
+        faux_data = 100*np.ones(shape=(300,300,1), dtype=np.uint8)
+        # sanity check
+        self.assertTrue(faux_data.shape[-1] == 1)
+
+        cleaned_data = pipe_utils.image_save_preprocessor(faux_data, report=False)
+        self.assertTrue(cleaned_data.shape[-1] == 3)
+
+        # test, 2D BW image also works 
+
+        faux_data = 100*np.ones(shape=(300,300), dtype=np.uint8)
+        # sanity check
+        self.assertTrue(faux_data.ndim == 2)
+
+        cleaned_data = pipe_utils.image_save_preprocessor(faux_data, report=False)
+        self.assertTrue(cleaned_data.shape[-1] == 3)
+
+
+    def test_16_bit(self):
+        """Check that a 16 bit image is downsampled to 8 bit
+        """
+        faux_data = 65000*np.ones(shape=(300,300,3), dtype=np.uint16)
+
+        cleaned_data = pipe_utils.image_save_preprocessor(faux_data, report=False)
+        self.assertTrue(cleaned_data.max() <= 255)
+
+
+    def test_8_bit(self):
+        pass
+
+
+    def test_0_to_1_normalized(self):
+        """Check that if an image range is [0,1) it is re sampled to be [0,255]
+        """
+        faux_data = np.ones(shape=(300,300,3), dtype=np.uint16)
+
+        cleaned_data = pipe_utils.image_save_preprocessor(faux_data, report=False)
+        self.assertTrue(cleaned_data.max() <= 255)
+        self.assertTrue(cleaned_data.max() > 1)
+    
+
+    def test_channel_first(self):
+        """Test that if color channel is first, the image is reorder to color
+        channel last
+        """
+        faux_data = 100*np.ones(shape=(3,300,300), dtype=np.uint8)
+
+        cleaned_data = pipe_utils.image_save_preprocessor(faux_data, report=False)
+
+        nptest.assert_array_equal(cleaned_data.shape, (300,300,3))
 
 
 class DataCheckTestCase(unittest.TestCase):

@@ -188,6 +188,8 @@ def dota_processor(block_shape):
 
 
     def _processor(raw_img):
+        """
+        """
 
         blocks = pipe_utils.chop_to_blocks(raw_img.data, block_shape)
         jmx, imx, *_ = blocks.shape
@@ -253,8 +255,8 @@ def save_as_retinanet_data(
         train_writer = csv.writer(train_file)
 
         for img in ds:
-            # skip this image if the data isn't ok
-            if not pipe_utils.data_is_ok(img.data, raise_exception=True):
+            # skip this image if the data isn't in the right format
+            if not pipe_utils.data_is_ok(img.data):
                 continue
 
             image_path = os.path.join(image_save_dir, img.image_id+'.png')

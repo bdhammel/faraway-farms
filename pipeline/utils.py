@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 from skimage.util import view_as_blocks
 from sklearn.model_selection import train_test_split 
+from skimage.color import grey2rgb
 from PIL import Image
 import math
 import glob
@@ -326,15 +327,31 @@ def image_save_preprocessor(img, report=True):
 
     data = np.asarray(img)
 
-    # set the color channel to last if in channel_first format
-    if len(data.shape) == 3 and data.shape[-1] != 3:
-        data = np.rollaxis(data, 0, 3) 
+    if data.ndim == 3:
+        # set the color channel to last if in channel_first format
+        if data.shape[0] <= 4:
+            data = np.rollaxis(data, 0, 3) 
+
+        # remove alpha channel
+        if data.shape[-1] == 4:
+            data = data[...,:3]
+
+    # Convert to color if B+W
+    if len(data.shape) == 2 or (len(data.shape) == 3 and data.shape[-1] == 1):
+        data = grey2rgb(data)
+
 
     # if > 8 bit, shift to a 255 pixel max
     bitspersample = int(math.ceil(math.log(data.max(), 2)))
     if bitspersample > 8:
         data >>= bitspersample - 8
-        data.astype('B')
+        data = data.astype(np.uint8)
+
+
+    # if data [0, 1), then set range to [0,255]
+    if bitspersample <= 0:
+        data *= 255
+        data = data.astype(np.uint8)
 
 
     if report:

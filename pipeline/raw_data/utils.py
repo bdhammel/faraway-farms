@@ -26,7 +26,7 @@ class RawObjImage(pipe_utils.SatelliteImage):
         # import the data for the image and the json
         print("loading image ", self._image_id)
         _data = read_raw_image(image_path)
-        self._data = pipe_utils.image_preprocessor(_data)
+        self._data = pipe_utils.image_save_preprocessor(_data)
         del _data
         print("...done")
         self._features = {}
