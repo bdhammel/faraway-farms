@@ -261,8 +261,7 @@ def atleast_list(thing):
     if not isinstance(thing, list):
         thing = [thing]
 
-    return thing
-
+    return thing 
 
 
 def data_is_ok(data, use=None, raise_exception=False):
@@ -305,10 +304,12 @@ def data_is_ok(data, use=None, raise_exception=False):
 def image_save_preprocessor(img, report=True):
     """Normalize the image
 
-    Proc
+    Procedure
+    ---------
 
      - Convert higher bit images (16, 10, etc) to 8 bit
      - Set color channel to the last channel
+     - Drop Alpha layer and conver b+w -> RGB
 
     TODO
     ----
