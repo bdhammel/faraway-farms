@@ -55,17 +55,3 @@ MAP_TO_LOCAL_LABELS = {
         'storagetanks':None,
         'tenniscourt':None
 }
-
-
-
-def import_merced_data(self):
-
-    data = pipe_utils.load_from_categorized_directory("/Volumes/insight/data/UCMerced_LandUse/Images")
-    reduced_data = convert_classes(data)
-    del data
-
-    pipe_utils.generarate_train_and_test(
-            reduced_data, 
-            path="/Users/bdhammel/Documents/insight/harvesting/datasets/uc_merced/", 
-            save=True
-            )

@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 from skimage.external import tifffile
 from skimage.io import imread
+from skimage.transform import resize
 from sklearn.model_selection import train_test_split 
 import glob
 import os
@@ -239,3 +240,24 @@ def convert_classes(raw_data, local_label_dict):
 
     return data
 
+
+def process_patch_for_saving(ds):
+    """Resize all images to a formate that works for the network
+
+    Args
+    ----
+    ds (dict) : 
+
+    Returns
+    -------
+    (dict)
+    """
+
+    clean_ds = {}
+    for label, full_images in ds.items():
+
+        for full_image in full_images:
+            image = resize(full_image, (200,200), preserve_range=True)
+            clean_ds.setdefault(label, []).append(image)
+
+    return clean_ds

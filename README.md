@@ -78,26 +78,34 @@ import pipeline.utils as pipe_utils
 
 raw_image = raw_utils.read_raw_image('/path/to/image.jpg')
 clean_image = pipe_utils.image_save_preprocessor(raw_image)
-pipe_utils.check_data(im, raise_exception=True)
+pipe_utils.check_data(clean_image, raise_exception=True)
 ```
+
+Preprocessing and cleaning functions specific to a dataset are located in the files `pipeline/raw_data/clean_<dataset>.py`. These handle more specific actions. For example, the processing of bounding boxes in object detection images. These files should be well commented; however, I will try to add a description of them here.
+
 
 ### Processing images
 
 Before an image is feed into a model (patch identification or object detection) more adjustments are made:
 
- - The order of the color channel is reversed, from RGB -> BGR. Honestly, I don't know why. This is done to be consistent with the authors of RetinaNet.
+ - The order of the color channel is reversed, from RGB -> BGR. Honestly, I don't know why. I do this to be consistent with the authors of RetinaNet.
  - Images are normalized on a per channel basis, by subtracting the mean (determined from ImageNet images)
+ - Images need to be of a specific shape: `(200,200,3)` for the patch identifier, and `(400,400,3)` for the object detector.
 
 
 **Example**
 
-The function `preprocess_image_for_model` will perform the above steps to prepare the image for the model.
+The function `preprocess_image_for_model` and `as_batch` will perform the above steps to prepare the image for the model.
 
 ```python
-Xinput = pipe_utils.preprocess_image_for_model(clean_image)
+batch = pipe_utils.as_batch(clean_image, shape=(200,200,3))
+Xinput = pipe_utils.preprocess_image_for_model(batch)
 ```
-
 
  
 
 ## Next Steps
+
+There exists some low-hanging fruit which has the potential for significantly improving model performance, which I was unable to explore. 
+
+ - 
