@@ -2,6 +2,7 @@
 """
 import numpy as np
 from pipeline import utils as pipe_utils
+import os
 
 
 class PatchDataSet:
@@ -20,10 +21,10 @@ class PatchDataSet:
         path (str) : path to the directory containing train and test pickle files
         """
         self.path = path
-        self.Xtrain = pipe_utils.load_pickled_data(path + "xtrain.p")
-        self.Xtest = pipe_utils.load_pickled_data(path + "xtest.p")
-        self.Ytrain = pipe_utils.load_pickled_data(path + "ytrain.p")
-        self.Ytest = pipe_utils.load_pickled_data(path + "ytest.p")
+        self.Xtrain = pipe_utils.load_pickled_data(os.path.join(path, "xtrain.p"))
+        self.Xtest = pipe_utils.load_pickled_data(os.path.join(path, "xtest.p"))
+        self.Ytrain = pipe_utils.load_pickled_data(os.path.join(path, "ytrain.p"))
+        self.Ytest = pipe_utils.load_pickled_data(os.path.join(path, "ytest.p"))
 
 
     def get_train_data(self):

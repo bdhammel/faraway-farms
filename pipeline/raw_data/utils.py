@@ -208,10 +208,10 @@ def generarate_train_and_test(data, path=None, save=False):
     )
 
     if save and path is not None:
-        dump_as_pickle(Xtrain, os.path.join(path, "xtrain.p"))
-        dump_as_pickle(Xtest, os.path.join(path, "xtest.p"))
-        dump_as_pickle(Ytrain, os.path.join(path, "ytrain.p"))
-        dump_as_pickle(Ytest, os.path.join(path, "ytest.p"))
+        pipe_utils.dump_as_pickle(Xtrain, os.path.join(path, "xtrain.p"))
+        pipe_utils.dump_as_pickle(Xtest, os.path.join(path, "xtest.p"))
+        pipe_utils.dump_as_pickle(Ytrain, os.path.join(path, "ytrain.p"))
+        pipe_utils.dump_as_pickle(Ytest, os.path.join(path, "ytest.p"))
 
     return Xtrain, Xtest, Ytrain, Ytest
 

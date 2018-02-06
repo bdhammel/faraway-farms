@@ -35,6 +35,8 @@ import keras
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 from pipeline import patch_pipeline
+from pipeline import utils as pipe_utils
+import os
 
 
 class PatchIdentifier:
@@ -143,9 +145,7 @@ class PatchIdentifier:
         ----
         weight_name (str) : name of the weight file with .h5 extension
         """
-        save_dir = "./models/saved_models/ucmerced.h5"
-        path = os.path.join(save_dir, weight_names)
-        self._model.save(path)
+        self._model.save(weight_names)
 
 
     def probabilities(self, X):
@@ -186,14 +186,6 @@ class PatchIdentifier:
         X (np array) : the image data set to evaluate of shape (-1, 200, 200, 3)
         Y (np array) : one_hot_encoded labels of the image
         """
-
-        # Sanity check
-        if not self._images_are_ok(X):
-            raise Exception
-
-        if not self._labels_are_ok(Y):
-            raise Exception
-
         return self._model.evaluate(X, Y)
 
 
@@ -216,7 +208,7 @@ def model_fn():
     )
 
     # Construct custom classifier on top of inception 
-    h = base_model.get_layer("mixed6").output
+    h = base_model.get_layer("mixed5").output
     h = keras.layers.GlobalAveragePooling2D()(h)
     h = keras.layers.Dropout(0.5)(h)
     h = keras.layers.Dense(424, activation='relu')(h)
@@ -227,30 +219,41 @@ def model_fn():
 
 
 
-def train(save_weights=False):
+def trainer(data_path):
     """Train the patch identification model
 
     Args
     ----
+    data_path (str) : path to the directory that the train and test sets are
+        stored in 
     save_weights (bool) : save the model once the epochs are finished
+
+    Returns
+    -------
+    keras.models.Model
     """
 
-    # Load in data
-    data_path = "../datasets/whu_rs19/"
+    # Import the data and clean it for the model
+    dataset = patch_pipeline.PatchDataSet(data_path)
+    _Xtrain, _Ytrain = dataset.get_train_data()
+    _Xtest, _Ytest = dataset.get_test_data()
 
-    dataset = import_uc_merced.DataSet(data_path)
-    Xtrain, Ytrain = dataset.get_train_data()
-    Xtest, Ytest = dataset.get_test_data()
+    Xtrain = pipe_utils.preprocess_image_for_model(_Xtrain, use='patch')
+    Xtest = pipe_utils.preprocess_image_for_model(_Xtest, use='patch')
+    Ytrain = [pipe_utils.PATCH_CLASS_TO_ID[label] for label in _Ytrain]
+    Ytest = [pipe_utils.PATCH_CLASS_TO_ID[label] for label in _Ytest]
 
     one_hot_ytrain = keras.utils.to_categorical(Ytrain, 6)
     one_hot_ytest = keras.utils.to_categorical(Ytest, 6)
 
-    model = PatchIdentifier()
+    # Construct the architecture of the model to use 
+    model = PatchIdentifier(model_fn=model_fn)
 
+    # Define data augmentation to apply 
     auger = ImageDataGenerator(
                 rotation_range=90,
-                shear_range=0.2,
-                zoom_range=0.2,
+                shear_range=0.3,
+                zoom_range=0.3,
                 horizontal_flip=True,
                 vertical_flip=True
     )
@@ -260,18 +263,29 @@ def train(save_weights=False):
     # Only train the top of the model, use the features from Inception
     # mixed5 at index 164
     # mixed6 at index 196
+    print("-"*50)
+    print("Training the classifier, i.e. dense layers")
     model.train(
             Xtrain, 
             one_hot_ytrain, 
-            epochs=20, 
-            fix_layers=(0, 195), 
+            epochs=4, 
+            fix_layers=(0, 164), 
             validation_data=(Xtest[:64], one_hot_ytest[:64])
     )
 
+    print("-"*50)
+    print("Training the full model")
+    model.train(
+            Xtrain, 
+            one_hot_ytrain, 
+            epochs=1, 
+            validation_data=(Xtest[:64], one_hot_ytest[:64])
+    )
+
+    print("-"*50)
     print("Finished Training")
     print("Accuracy: {:.2f}%".format(100*model.evaluate(Xtest, one_hot_ytest)[1]))
 
-    # Save all of your hard work 
-    if save_weights:
-        model.save("./models/saved_models/patch_identifier.h5")
+
+    return model
 

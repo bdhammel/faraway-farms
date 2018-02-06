@@ -344,14 +344,13 @@ def image_save_preprocessor(img, report=True):
     bitspersample = int(math.ceil(math.log(data.max(), 2)))
     if bitspersample > 8:
         data >>= bitspersample - 8
-        data = data.astype(np.uint8)
 
 
     # if data [0, 1), then set range to [0,255]
     if bitspersample <= 0:
         data *= 255
-        data = data.astype(np.uint8)
 
+    data = data.astype(np.uint8)
 
     if report:
         print("Cleaned To:")
@@ -365,7 +364,7 @@ def image_save_preprocessor(img, report=True):
     return data
 
 
-def preprocess_image_for_model(data, use):
+def preprocess_image_for_model(data, use, raise_exception=False):
     """Process data in the manner expected by retinanet
 
     preprocessor That takes a clean image and performs final adjustments 
@@ -396,10 +395,11 @@ def preprocess_image_for_model(data, use):
 
     try:
         data_is_ok(data, use, raise_exception=True)
-    except Exception as e:
+    except AssertionError as e:
         data = image_save_preprocessor(data, report=False)
         # Doing this for debug purposes
-        raise e
+        if raise_exception:
+            raise e
 
     # flip to BGR channel, cause that's what retina net says to do
     # cast as float

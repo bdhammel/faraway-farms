@@ -45,9 +45,7 @@ def fetch_image(xcenter, ycenter, zoom, api_key):
     return img 
 
 
-def __process_google(img):
-
-    data = img.data
+def __process_google(data):
 
     # drop alpha channel
     # make sure RGB channels
