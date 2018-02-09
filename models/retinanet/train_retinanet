@@ -1,1 +1,5 @@
-python ./keras_retinanet/bin/train.py csv /Users/bdhammel/Documents/insight/harvesting/datasets/obj_detection/dota/train_annot.csv /Users/bdhammel/Documents/insight/harvesting/datasets/obj_detection/dota/classes.csv 
+python ./keras_retinanet/bin/train.py \
+    --snapshot ./snapshots/trained_stage1.h5 \
+    csv ~/Documents/data/dota/train_annot.csv ~/Documents/data/dota/classes.csv \
+    --val-annotations ~/Documents/data/dota/val_annot.csv 
+

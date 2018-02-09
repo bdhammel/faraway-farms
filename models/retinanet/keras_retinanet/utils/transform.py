@@ -171,7 +171,8 @@ def random_flip(flip_x_chance, flip_y_chance, prng=DEFAULT_PRNG):
 
 
 def change_transform_origin(transform, center):
-    """ Create a new transform with the origin at a different location.
+    """ Create a new transform representing the same transformation,
+        only with the origin of the linear part changed.
     # Arguments:
         transform: the transformation matrix
         center: the new origin of the transformation
@@ -179,18 +180,29 @@ def change_transform_origin(transform, center):
         translate(center) * transform * translate(-center)
     """
     center = np.array(center)
-    return np.dot(np.dot(translation(center), transform), translation(-center))
+    return np.linalg.multi_dot([translation(center), transform, translation(-center)])
+
+
+
+def random_channel_shift(x, intensity, channel_axis=3):
+    x = np.rollaxis(x, channel_axis, 0)
+    min_x, max_x = np.min(x), np.max(x)
+    channel_images = [np.clip(x_channel + np.random.uniform(-intensity, intensity), min_x, max_x)
+                      for x_channel in x]
+    x = np.stack(channel_images, axis=0)
+    x = np.rollaxis(x, 0, channel_axis + 1)
+    return x
 
 
 def random_transform(
-    # min_rotation=0,
-    # max_rotation=0,
-    # min_translation=(0, 0),
-    # max_translation=(0, 0),
-    # min_shear=0,
-    # max_shear=0,
-    # min_scaling=(1, 1),
-    # max_scaling=(1, 1),
+    min_rotation=0,
+    max_rotation=0,
+    min_translation=(0, 0),
+    max_translation=(0, 0),
+    min_shear=0,
+    max_shear=0,
+    min_scaling=(1, 1),
+    max_scaling=(1, 1),
     flip_x_chance=0,
     flip_y_chance=0,
     prng=DEFAULT_PRNG
@@ -223,14 +235,13 @@ def random_transform(
         flip_y_chance:   The chance (0 to 1) that a transform will contain a flip along Y direction.
         prng:            The pseudo-random number generator to use.
     """
-    # return np.linalg.multi_dot([
-    #     random_rotation(min_rotation, max_rotation, prng),
-    #     random_translation(min_translation, max_translation, prng),
-    #     random_shear(min_shear, max_shear, prng),
-    #     random_scaling(min_scaling, max_scaling, prng),
-    #     random_flip(flip_x_chance, flip_y_chance, prng)
-    # ])
-    return random_flip(flip_x_chance, flip_y_chance, prng)
+    return np.linalg.multi_dot([
+        random_rotation(min_rotation, max_rotation, prng),
+        random_translation(min_translation, max_translation, prng),
+        random_shear(min_shear, max_shear, prng),
+        random_scaling(min_scaling, max_scaling, prng),
+        random_flip(flip_x_chance, flip_y_chance, prng),
+    ])
 
 
 def random_transform_generator(prng=None, **kwargs):

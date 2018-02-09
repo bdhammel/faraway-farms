@@ -38,7 +38,7 @@ from ..callbacks import RedirectModel
 from ..callbacks.eval import Evaluate
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
-from ..models.resnet import resnet_retinanet, custom_objects
+from ..models.resnet import resnet50_retinanet, custom_objects, resnet_retinanet
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
 
@@ -47,6 +47,34 @@ def get_session():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     return tf.Session(config=config)
+
+def backbone_freezer(model, trainable=True):
+    if True:
+        backbone_layers = []
+
+        with open('/home/paperspace/Documents/backbone_layers.txt') as f:
+            for line in f:
+                backbone_layers.append(line.strip())
+
+        #print('-'*50)
+        #print(backbone_layers)
+        # The backbone layers have been frozen, if you want to train the full model
+        # uncomment the lines below
+        for layer in model.layers:
+            if layer.name in backbone_layers:
+                #print(layer.name)
+                layer.trainable = trainable
+
+        # compile model
+        model.compile(
+            loss={
+                'regression'    : losses.smooth_l1(),
+                'classification': losses.focal()
+            },
+            optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
+        )
+
+    return model
 
 
 def create_models(num_classes, weights='imagenet', multi_gpu=0):
@@ -67,6 +95,7 @@ def create_models(num_classes, weights='imagenet', multi_gpu=0):
         prediction_model = keras.models.Model(inputs=model.inputs, outputs=model.outputs[:2] + [detections])
     else:
         model            = resnet_retinanet(num_classes, weights=weights, nms=True)
+        model = backbone_freezer(model, trainable=True)
         training_model   = model
         prediction_model = model
 
@@ -87,6 +116,8 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
     # save the prediction model
     if args.snapshots:
+        # ensure directory created first; otherwise h5py will error after epoch.
+        os.makedirs(args.snapshot_path, exist_ok=True)
         checkpoint = keras.callbacks.ModelCheckpoint(
             os.path.join(
                 args.snapshot_path,
@@ -116,7 +147,17 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
 def create_generators(args):
     # create random transform generator for augmenting training data
-    transform_generator = random_transform_generator(flip_x_chance=0.5)
+    transform_generator = random_transform_generator(
+            min_rotation=0,
+            max_rotation=5,
+            max_translation=(0.1, 0.1),
+            min_shear=0.,
+            max_shear=3.,
+            min_scaling=(.8, .8),
+            max_scaling=(1.2, 1.2),
+            flip_x_chance=0.3,
+            flip_y_chance=0.3,
+            )
 
     if args.dataset_type == 'coco':
         # import here to prevent unnecessary dependency on cocoapi
@@ -212,11 +253,11 @@ def parse_args(args):
     group.add_argument('--weights',  help='Weights to use for initialization (defaults to \'imagenet\').', default='imagenet')
     group.add_argument('--snapshot', help='Snapshot to resume training with.')
 
-    parser.add_argument('--batch-size',    help='Size of the batches.', default=1, type=int)
+    parser.add_argument('--batch-size',    help='Size of the batches.', default=24, type=int)
     parser.add_argument('--gpu',           help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--multi-gpu',     help='Number of GPUs to use for parallel processing.', type=int, default=0)
     parser.add_argument('--epochs',        help='Number of epochs to train.', type=int, default=50)
-    parser.add_argument('--steps',         help='Number of steps per epoch.', type=int, default=10000)
+    parser.add_argument('--steps',         help='Number of steps per epoch.', type=int, default=1000)
     parser.add_argument('--snapshot-path', help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
     parser.add_argument('--no-snapshots',  help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation', help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
@@ -245,6 +286,7 @@ def main(args=None):
     if args.snapshot:
         print('Loading model, this may take a second...')
         model            = keras.models.load_model(args.snapshot, custom_objects=custom_objects)
+        model = backbone_freezer(model, trainable=True)
         training_model   = model
         prediction_model = model
     else:
@@ -269,6 +311,7 @@ def main(args=None):
         steps_per_epoch=args.steps,
         epochs=args.epochs,
         verbose=1,
+        initial_epoch=0,
         callbacks=callbacks,
     )
 

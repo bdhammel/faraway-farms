@@ -24,23 +24,33 @@ resnet_resource = 'https://github.com/fizyr/keras-models/releases/download/v0.0.
 
 custom_objects = retinanet.custom_objects.copy()
 
+
 def resnet_retinanet(num_classes, backbone=50, weights='imagenet', **kwargs):
+
+
+    #resnet = keras.applications.resnet50.ResNet50(
+    #        input_tensor=inputs,
+    #        include_top=False,
+    #        weights=weights
+    #)
+
 
     inputs = keras.layers.Input(shape=(400, 400, 3))
 
-    resnet = keras.applications.resnet50.ResNet50(
+    inception = keras.applications.inception_v3.InceptionV3(
             input_tensor=inputs,
             include_top=False,
             weights=weights
     )
 
-    bottleneck_layers = ['activation_22', 'activation_40', 'activation_49'] 
+    #bottleneck_layers = ['activation_22', 'activation_40', 'activation_49'] 
+    bottleneck_layers = ['mixed3', 'mixed4', 'mixed5'] 
 
     # create the full model
     model = retinanet.retinanet_bbox(
             inputs=inputs, 
             num_classes=num_classes, 
-            backbone=resnet, 
+            backbone=inception, 
             bottleneck_layers=bottleneck_layers,
             **kwargs)
 
@@ -48,7 +58,8 @@ def resnet_retinanet(num_classes, backbone=50, weights='imagenet', **kwargs):
 
 
 def resnet50_retinanet(num_classes, weights='imagenet', skip_mismatch=True, **kwargs):
-    return resnet_retinanet(num_classes=num_classes, backbone=50, inputs=inputs, weights=weights, skip_mismatch=skip_mismatch, **kwargs)
+
+    return resnet_retinanet(num_classes=num_classes, backbone=50, weights=weights, skip_mismatch=skip_mismatch, **kwargs)
 
 
 def resnet101_retinanet(num_classes, inputs=None, weights='imagenet', skip_mismatch=True, **kwargs):
@@ -59,9 +70,9 @@ def resnet152_retinanet(num_classes, inputs=None, weights='imagenet', skip_misma
     return resnet_retinanet(num_classes=num_classes, backbone=152, inputs=inputs, weights=weights, skip_mismatch=skip_mismatch, **kwargs)
 
 
-def ResNet50RetinaNet(num_classes, skip_mismatch=True, **kwargs):
+def ResNet50RetinaNet(inputs, num_classes, skip_mismatch=True, **kwargs):
     warnings.warn("ResNet50RetinaNet is replaced by resnet50_retinanet and will be removed in a future release.")
-    return resnet50_retinanet(num_classes, *args, skip_mismatch=skip_mismatch, **kwargs)
+    return resnet50_retinanet(num_classes, inputs, *args, skip_mismatch=skip_mismatch, **kwargs)
 
 
 def ResNet101RetinaNet(inputs, num_classes, skip_mismatch=True, **kwargs):

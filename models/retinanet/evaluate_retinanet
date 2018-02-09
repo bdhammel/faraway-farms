@@ -1,0 +1,3 @@
+python ./keras_retinanet/bin/evaluate.py \
+    csv ~/Documents/data/dota/test_annot.csv ~/Documents/data/dota/classes.csv \
+    ./snapshots/resnet50_csv_47.h5

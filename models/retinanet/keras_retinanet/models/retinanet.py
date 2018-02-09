@@ -184,7 +184,6 @@ def retinanet(
     submodels               = None,
     name                    = 'retinanet'
 ):
-
     if submodels is None:
         submodels = default_submodels(num_classes, anchor_parameters)
 
@@ -201,7 +200,6 @@ def retinanet(
 
 
 def retinanet_bbox(inputs, num_classes, nms=True, name='retinanet-bbox', *args, **kwargs):
-    
     model = retinanet(inputs=inputs, num_classes=num_classes, *args, **kwargs)
 
     # we expect the anchors, regression and classification values as first output
