@@ -4,6 +4,7 @@ Counting sheep without falling asleep
 
 
 #### Abstract 
+
 Identify, locate, and count objects of interest given a satellite image.  
 
 In rural and hard to reach regions of the world, farmers struggle to qualify for financial loans. A large factor is do to the difficulty in having a credit agency visit their land to itemize assets and evaluate creditworthiness. This project investigates the feasibility of using a convolutional neural network to itemize assets through remote sensing.
@@ -24,6 +25,11 @@ The contained file, `requirements.txt`, contains the python package dependancies
 pip install -r requirements.txt
 ~~~ 
 
+## Data and weights
+
+Please see the folder [datasets](./datasets) for a description of the data used in this project.
+
+
 ## Technical Discussion
 
 Two models are implemented in the projects. A classification model, witch labels a subsection, patch, of an image with the most probable class. And an object detection model, which locates, counts and identifies specific objects of interest.
@@ -34,12 +40,11 @@ The model employed for patch identification uses some of the convolutional layer
 
 Inception V3 was chosen because it is the most accurate model per number of parameters. In theory, fewer parameters will reduce the likely hood of overfitting. 
 
-In addition to this, the convolutional layers after the 6th concatenation node are dropped. This was done for the same reason.
-
+In addition to this, the convolutional layers after the 6th concatenation node are dropped. This was done to further reduce the number of parameters to avoid overfitting.
 
 ### Object Detection 
 
-RetinaNet was selected as the object detection model because of its success in identifying densely packed objects [1]. This is attributed to the implementation of a weighted loss function, dubbed focal loss, which addresses the issue of class imbalance between objects of interest and the image background.
+RetinaNet was selected as the object detection model because of its success in identifying densely packed objects [1]. This is attributed to the implementation of a weighted loss function, dubbed focal loss, which addresses the issue of class imbalance between objects-of-interest and the image background.
 
 A modified version of the open-source package built by the authors of [1] is included in this repo. Because of the rapidly evolving capabilities of the open-source repo, **I recommend using an unaltered version of [2] and not the one contained here.**
 
@@ -101,11 +106,3 @@ The function `preprocess_image_for_model` and `as_batch` will perform the above 
 batch = pipe_utils.as_batch(clean_image, shape=(200,200,3))
 Xinput = pipe_utils.preprocess_image_for_model(batch)
 ```
-
- 
-
-## Next Steps
-
-There exists some low-hanging fruit which has the potential for significantly improving model performance, which I was unable to explore. 
-
- - 
