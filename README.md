@@ -25,8 +25,8 @@ Examples of using the scripts contained in this package can be found in the fold
 
 #### Model Training & Inference 
 
- - [Object detection](object_detection.ipynb)
- - [patch identification](patch_training.ipynb)
+ - [Object detection](workspace/object_detection.ipynb)
+ - [Patch identification](workspace/patch_training.ipynb)
 
 
 ## Installation
