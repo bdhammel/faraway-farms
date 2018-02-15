@@ -7,19 +7,31 @@ Counting sheep without falling asleep
 
 Identify, locate, and count objects of interest given a satellite image.  
 
-In rural and hard to reach regions of the world, farmers struggle to qualify for financial loans. A large factor is do to the difficulty in having a credit agency visit their land to itemize assets and evaluate creditworthiness. This project investigates the feasibility of using a convolutional neural network to itemize assets through remote sensing.
+In rural and hard to reach regions of the world, farmers struggle to qualify for financial loans. A large factor is due to the difficulty in having a credit agency visit their land to itemize assets and evaluate creditworthiness. This project investigates the feasibility of using a convolutional neural network to itemize assets through remote sensing.
 
-Do to the limited availability of labeled farm equipment in satellite images, I explore a proof-of-principle model using readily available datasets in the public domain. 
+Due to the limited availability of labeled farm equipment in satellite images; I explore a proof-of-principle model using readily available datasets in the public domain. 
 
 [Google Slides](http://bit.ly/faraway-farms)
 
 ## Examples
 
-Examples on using the scripts contained in this package can be found in the folder `workspace`.
+Examples of using the scripts contained in this package can be found in the folder [workspace](workspace).
+
+#### Cleaning data
+
+ - [Cleaning the DOTA dataset](workspace/dataset_cleaning/generate_dota_dataset.ipynb)
+ - [Cleaning data from RectLabel](generate_rectlabel_dataset.ipynb)
+ - [Cleaning data for patch identification model](generate_rectlabel_dataset.ipynb)
+
+#### Model Training & Inference 
+
+ - [Object detection](object_detection.ipynb)
+ - [patch identification](patch_training.ipynb)
+
 
 ## Installation
 
-The contained file, `requirements.txt`, contains the python package dependancies for this projects. Installation of these can be performed via 
+The contained file, `requirements.txt`, contains the python package dependencies for this projects. Installation of these can be performed via 
 
 ~~~
 pip install -r requirements.txt
@@ -95,7 +107,7 @@ Before an image is feed into a model (patch identification or object detection) 
 
  - The order of the color channel is reversed, from RGB -> BGR. Honestly, I don't know why. I do this to be consistent with the authors of RetinaNet.
  - Images are normalized on a per channel basis, by subtracting the mean (determined from ImageNet images)
- - Images need to be of a specific shape: `(200,200,3)` for the patch identifier, and `(400,400,3)` for the object detector.
+ - Images need to be of a specific shape: `(200,200,3)` for the patch identifier, and `(400,400,3)` for the object detector. **Note:** it is probably worth increasing the size of the input image for the object detection model to (600,600) - the standard size for RetinaNet.
 
 
 **Example**
